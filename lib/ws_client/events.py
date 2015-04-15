@@ -38,17 +38,20 @@ class Event(object):
         self.location = obj_data.get('EventLocationName','').title()
     
     def json(self):
+        """ Generic object dump as JSON """
         return json.dumps(dict(
             ((k,str(v)) for k,v in self.__dict__.iteritems())
         ))
     
     def latitude_str(self):
+        """ Stringify latitude """
         if self.latitude >= 0:
             return "%s&deg; N" % self.latitude
         else:
             return "%s&deg; S" % -self.latitude
     
     def longitude_str(self):
+        """ Stringify longitude """
         if self.longitude >= 0:
             return "%s&deg; E" % self.longitude
         else:
@@ -66,6 +69,7 @@ class Event(object):
 
 class EventRequest(ws_request.BaseRequest):
 
+    # These are the parameters that can be passed into the query
     param_types = dict(
         starttime = ws_request.WSDateParam(),
         endtime = ws_request.WSDateParam(),
@@ -78,11 +82,13 @@ class EventRequest(ws_request.BaseRequest):
         format = ws_request.WSParam(default='text'),
         eventid = ws_request.WSParam(),
     )
+    # The base query URL
     url = ws_settings.FDSN_EVENT_WS_URL
     
     def get_default_headers(self):
         headers = super(EventRequest,self).get_default_headers()
         headers.update({
+            # Force plain-text (ie. csv) response
             'accept': 'text/plain',
         })
         return headers
