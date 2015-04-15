@@ -1,1 +1,28 @@
 Django==1.6.10
+textile==2.2.1
+iso3166==0.6
+requests==2.2.1
+
+### Customized libraries from IRIS Github
+#
+# These are generally for libraries that are available from Github, but have not released
+# a new version in a while.  In this situation, pip has to either grab an arbitrary
+# commit (which requires git, so it won't work on the production host anyway), or get the latest
+# master, which means that different machines may have different versions.
+#
+# Instead, we fork the project using the iris-edu account, and release a version from there.
+# This ensures that we have a stable codebase for the library, and because versions are
+# available as tarballs via HTTP, we can deploy to the production host.
+#
+# The only issue here is that pip doesn't record the URL that the library came from, only the
+# stated version number (see https://github.com/pypa/pip/issues/452).
+# Ex:
+# > pip install https://github.com/iris-edu/python-textile/archive/v2.1.8.tar.gz#egg=textile==2.1.8
+# > pip freeze
+# textile==2.1.8
+#
+# For this reason, the general pattern here is that our release tag is one version above the
+# last public release, adds an "-iris" suffix, and is marked as a prerelease.
+# eg. if the last released version is 1.3.0, our tag is 1.4.0-iris
+#
+https://github.com/iris-edu/django-crispy-forms/archive/1.5.0-iris.tar.gz

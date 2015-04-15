@@ -1,0 +1,14 @@
+/* jQuery bug prevents accurate width measurement, so select2 choices shouldn't wrap */
+.select2-result {
+  white-space: nowrap;
+}
+
+/* Styling of tagged elements */
+.select2-result .select2-tag-help {
+  font-size: 90%;
+  font-style: italic;
+  color: #999;
+}
+.select2-result.select2-highlighted .select2-tag-help {
+  color: #ccc;
+}

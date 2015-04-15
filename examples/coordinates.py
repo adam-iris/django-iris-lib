@@ -5,18 +5,18 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit
 from crispy_forms.bootstrap import FormActions
 from lib.coordinates import Coordinates, CoordinatesFormMixin
-from lib.form_mixins import FormHelperMixin
+from lib.crispy_forms_mixins import FormHelperMixin
 from logging import getLogger
 
 LOGGER = getLogger(__name__)
 
 class CoordinatesForm(FormHelperMixin, CoordinatesFormMixin, forms.Form):
-    
+
     max_lat = forms.DecimalField()
     min_lat = forms.DecimalField()
     max_lon = forms.DecimalField()
     min_lon = forms.DecimalField()
-    
+
     def create_form_layout(self):
         return Layout(
             Coordinates('max_lat', 'min_lat', 'max_lon', 'min_lon',
@@ -30,10 +30,9 @@ class CoordinatesForm(FormHelperMixin, CoordinatesFormMixin, forms.Form):
 class CoordinatesView(FormView):
     template_name = 'examples/coordinates.html'
     form_class = CoordinatesForm
-    
+
     def get_context_data(self, **kwargs):
         context = super(CoordinatesView, self).get_context_data(**kwargs)
         LOGGER.info("Form media: %s" % context['form'].media)
         return context
-        
-    
+
