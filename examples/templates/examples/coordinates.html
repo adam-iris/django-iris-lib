@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
 
+{% block extra_head %}
+{{ form.media }}
+{% endblock extra_head %}
+
 {% block content_body %}
-    {% crispy form %}
+    {% crispy form form.helper %}
 {% endblock content_body %}

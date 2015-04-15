@@ -1,8 +1,25 @@
 from crispy_forms.layout import LayoutObject, TEMPLATE_PACK
 from django.utils.log import getLogger
 from django.template.loader import render_to_string
+from django.conf import settings
 
 LOGGER = getLogger(__name__)
+
+
+class CoordinatesFormMixin(object):
+    class Media:
+        css = {
+            'all': (
+                '//cdn.jsdelivr.net/qtip2/2.2.1/jquery.qtip.css',
+                'coordinate_picker/coordinate_picker.css',
+            )
+        }
+        js = (
+            '//maps.googleapis.com/maps/api/js',
+            '//cdn.jsdelivr.net/qtip2/2.2.1/jquery.qtip.js',
+            'coordinate_picker/coordinate_picker.js',
+        )
+
 
 class Coordinates(LayoutObject):
     """

@@ -1,13 +1,16 @@
+from django.utils.translation import ugettext as _
 from django import forms
 from django.views.generic.edit import FormView
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit
 from crispy_forms.bootstrap import FormActions
-from lib.coordinates import Coordinates
+from lib.coordinates import Coordinates, CoordinatesFormMixin
 from lib.form_mixins import FormHelperMixin
+from logging import getLogger
 
+LOGGER = getLogger(__name__)
 
-class CoordinatesForm(FormHelperMixin, forms.Form):
+class CoordinatesForm(FormHelperMixin, CoordinatesFormMixin, forms.Form):
     
     max_lat = forms.DecimalField()
     min_lat = forms.DecimalField()
@@ -27,5 +30,10 @@ class CoordinatesForm(FormHelperMixin, forms.Form):
 class CoordinatesView(FormView):
     template_name = 'examples/coordinates.html'
     form_class = CoordinatesForm
+    
+    def get_context_data(self, **kwargs):
+        context = super(CoordinatesView, self).get_context_data(**kwargs)
+        LOGGER.info("Form media: %s" % context['form'].media)
+        return context
         
     
