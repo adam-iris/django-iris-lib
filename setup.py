@@ -16,7 +16,7 @@ setup(name='django-lib',
       license='Apache 2',
       packages=['lib'],
       include_package_data=True,
-      zip_safe=True,
+      zip_safe=False,
       tests_require=[
           'nose',
           'mock'
