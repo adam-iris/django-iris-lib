@@ -15,8 +15,9 @@
                 class="control-label {% if subfields.n.field.required %}requiredField{% endif %}">
               {{ subfields.n.label|safe }}{% if subfields.n.field.required %}<span class="asteriskField">*</span>{% endif %}
             </label>
-            <br/>
+            <div>
             {% crispy_field subfields.n %}
+            </div>
             {% include 'coordinate_picker/field_errors.html' with field=subfields.n %}
           </td>
         </tr>
@@ -45,8 +46,9 @@
         </tr>
         <tr>
           <td colspan="3" class="{% if subfields.s.errors %}has-error{% endif %}">
+            <div>
             {% crispy_field subfields.s %}
-            <br/>
+            </div>
             <label for="{{ subfields.s.id_for_label }}"
                 class="control-label {% if subfields.s.field.required %}requiredField{% endif %}">
               {{ subfields.s.label|safe }}{% if subfields.s.field.required %}<span class="asteriskField">*</span>{% endif %}
