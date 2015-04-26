@@ -22,6 +22,11 @@
       draggable: false,
       editable: false,
       clickable: false
+    },
+    circleOptions: {
+      draggable: false,
+      editable: false,
+      clickable: false
     }
   };
 
@@ -50,19 +55,20 @@
     // Overlay sits on top of the map so we can capture mouse events
     var $mapOverlay = $('<div class="coordinate-picker-overlay"></div>');
     // Drawing congtrols
-    var $drawBtn = $('<button type="button" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-pencil"></span> Draw Box</button>');
+    var $rectBtn = $('<button type="button" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-pencil"></span> Draw Box</button>');
     var $circleBtn = $('<button type="button" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-pencil"></span> Draw Circle</button>');
     var $panBtn = $('<button type="button" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-move"></span> Pan/Zoom</button>');
     var $drawPanControls = $('<div class="coordinate-picker-top-controls">').append(
       "<small>Drawing mode:</small> ",
-      $('<div class="btn-group">').append($drawBtn, $circleBtn, $panBtn));
+      $('<div class="btn-group">').append($rectBtn, $circleBtn, $panBtn));
     // Dialog controls
     var $okBtn = $('<button type="button" class="btn btn-primary btn-sm">Ok</button>');
     var $cancelBtn = $('<button type="button" class="btn btn-default btn-sm">Cancel</button>');
     var $okCancelControls = $('<div class="coordinate-picker-bottom-controls">').append($okBtn, ' ', $cancelBtn);
 
     var $qtipTarget = this.$root;
-    var currentRect = null;
+    var rectShape = null;
+    var circleShape = null;
     var drawStartPoint = null;
     var map = null;
     // GMaps overlay for coordinate translation
@@ -82,23 +88,21 @@
       } else {
         $mapOverlay.hide();
       }
-      $drawBtn.toggleClass('active', drawingMode === 'rect');
+      $rectBtn.toggleClass('active', drawingMode === 'rect');
       $circleBtn.toggleClass('active', drawingMode === 'circle');
       $panBtn.toggleClass('active', !drawingMode);
     }
-    function enableDrawingMode() {
-      isDrawing = true;
-      $mapOverlay.show();
-      $drawBtn.addClass('active');
-      $panBtn.removeClass('active');
+    function enableRectMode() {
+      setDrawingMode('rect');
+    }
+    function enableCircleMode() {
+      setDrawingMode('circle');
     }
     function disableDrawingMode() {
-      isDrawing = false;
-      $mapOverlay.hide();
-      $drawBtn.removeClass('active');
-      $panBtn.addClass('active');
+      setDrawingMode(null);
     }
-    $drawBtn.click(enableDrawingMode);
+    $rectBtn.click(enableRectMode);
+    $circleBtn.click(enableCircleMode);
     $panBtn.click(disableDrawingMode);
 
     /* Position is from mouse event evt.pageX, evt.pageY */
@@ -122,31 +126,51 @@
       var top = Math.min(point.y, drawStartPoint.y);
       var bottom = Math.max(point.y, drawStartPoint.y);
       // console.log("("+left+","+bottom+")-("+right+","+top+")");
-      currentRect.setBounds(new google.maps.LatLngBounds(
+      rectShape.setBounds(new google.maps.LatLngBounds(
         getLatLng(new google.maps.Point(left, bottom)),
         getLatLng(new google.maps.Point(right, top))
       ));
     }
+    
+    function updateCircle(point) {
+      var latLng = getLatLng(point);
+      var radius = 15*100000; // google.maps.geometry
+      circleShape.setRadius(radius);
+    }
 
     function startDrawing(e) {
-      if (currentRect) {
-        currentRect.setMap(null);
+      if (rectShape) {
+        rectShape.setMap(null);
       }
       drawStartPoint = getPoint(e.pageX, e.pageY);
       var latLng = getLatLng(drawStartPoint);
-      var rectOptions = $.extend({}, _this.options.rectangleOptions, {
-        map: map,
-        bounds: new google.maps.LatLngBounds(latLng, latLng)
-      });
-      currentRect = new google.maps.Rectangle(rectOptions)
+      if (drawingMode === 'rect') {
+        var rectOptions = $.extend({}, _this.options.rectangleOptions, {
+          map: map,
+          bounds: new google.maps.LatLngBounds(latLng, latLng)
+        });
+        rectShape = new google.maps.Rectangle(rectOptions);
+      }
+      else if (drawingMode === 'circle') {
+        var circleOptions = $.extend({}, _this.options.circleOptions, {
+          map: map,
+          center: latLng,
+          radius: 0
+        });
+        circleShape = new google.maps.Circle(circleOptions);
+      }
     }
     function keepDrawing(e) {
       var point = getPoint(e.pageX, e.pageY);
-      updateRect(point);
+      if (drawingMode === 'rect') {
+        updateRect(point);
+      }
+      else if (drawingMode === 'circle') {
+        updateCircle(point);
+      }
     }
     function stopDrawing(e) {
-      var point = getPoint(e.pageX, e.pageY);
-      updateRect(point);
+      keepDrawing(e);
       drawStartPoint = null;
     }
 
@@ -159,17 +183,17 @@
       }
       ov.setMap(map);
       $mapOverlay.mousedown(function(e) {
-        if (isDrawing) {
+        if (drawingMode) {
           startDrawing(e);
         }
       });
       $(document).mousemove(function(e) {
-        if (isDrawing && drawStartPoint) {
+        if (drawingMode && drawStartPoint) {
           keepDrawing(e);
         }
       });
       $(document).mouseup(function(e) {
-        if (isDrawing && drawStartPoint) {
+        if (drawingMode && drawStartPoint) {
           stopDrawing(e);
           disableDrawingMode();
         }
@@ -190,12 +214,12 @@
         return;
       }
       var firstTime = false;
-      if (currentRect) {
-        currentRect.setMap(null);
+      if (rectShape) {
+        rectShape.setMap(null);
       } else {
         firstTime = true;
       }
-      currentRect = new google.maps.Rectangle(
+      rectShape = new google.maps.Rectangle(
         $.extend( {}, _this.options.rectangleOptions, {
           map: map,
           bounds: new google.maps.LatLngBounds(
@@ -207,7 +231,7 @@
       // Zoom into current bounds on initial open
       if (firstTime) {
         google.maps.event.addListenerOnce(map, 'idle', function(r) {
-          map.fitBounds(currentRect.getBounds());
+          map.fitBounds(rectShape.getBounds());
           if (map.getZoom() > 5) {
             map.setZoom(5);
           }
@@ -249,8 +273,8 @@
           // Initialize/update the current selection
           initRect();
           // If there is no selection, start in drawing mode
-          if (currentRect) { disableDrawingMode(); }
-          else { enableDrawingMode(); }
+          if (rectShape) { disableDrawingMode(); }
+          else { enableRectMode(); }
         }
       }
     });
@@ -259,8 +283,8 @@
     });
     $okBtn.click(function() {
       $qtipTarget.qtip('hide');
-      if (currentRect) {
-        var bounds = currentRect.getBounds();
+      if (rectShape) {
+        var bounds = rectShape.getBounds();
         _this.$inputS.val(bounds.getSouthWest().lat().toFixed(3));
         _this.$inputW.val(bounds.getSouthWest().lng().toFixed(3));
         _this.$inputN.val(bounds.getNorthEast().lat().toFixed(3));
