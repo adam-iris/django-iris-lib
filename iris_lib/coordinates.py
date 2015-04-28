@@ -27,10 +27,13 @@ class Coordinates(LayoutObject):
     """
     template = "coordinate_picker/layout.html"
     
-    def __init__(self, *fields, **kwargs):
-        if len(fields) != 4:
-            raise Exception("Coordinates requires 4 fields")
-        self.fields = list(fields)
+    def __init__(self, nsew=None, cr=None, **kwargs):
+        if not (nsew or cr):
+            raise Exception("Need one or both of NSEW or Center/Radius inputs")
+        if nsew and len(nsew) != 4:
+            raise Exception("NSEW coordinates requires 4 fields")
+        self.nsew = nsew
+        self.cr = cr
         self.css_class = kwargs.pop('css_class', None)
         self.css_id = kwargs.pop('css_id', None)
         self.template = kwargs.pop('template', self.template)
@@ -41,11 +44,18 @@ class Coordinates(LayoutObject):
         template = self.template
         LOGGER.info("Coordinates")
         subfields = {}
-        for i in range(4):
-            label = 'nsew'[i]
-            field = self.fields[i]
-            subfields[label] = form[field]
-            LOGGER.info("Subfield: %s" % subfields[label].field)
+        if self.nsew:
+            for i in range(4):
+                label = 'nsew'[i]
+                field = self.nsew[i]
+                subfields[label] = form[field]
+                LOGGER.info("Subfield: %s" % subfields[label].field)
+        if self.cr:
+            for i in range(len(self.cr)):
+                label = ['center', 'max_radius', 'min_radius'][i]
+                field = self.cr[i]
+                subfields[label] = form[field]
+                LOGGER.info("Subfield: %s" % subfields[label].field)
         return render_to_string(
             template,
             {'wrapper': self, 'subfields': subfields},

@@ -19,7 +19,7 @@ class CoordinatesForm(FormHelperMixin, CoordinatesFormMixin, forms.Form):
 
     def create_form_layout(self):
         return Layout(
-            Coordinates('max_lat', 'min_lat', 'max_lon', 'min_lon',
+            Coordinates(nsew=('max_lat', 'min_lat', 'max_lon', 'min_lon',),
                 css_id='location', label_html=_('Coordinates')),
             FormActions(
                 Submit('save', 'Save changes'),

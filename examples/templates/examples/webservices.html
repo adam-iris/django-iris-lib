@@ -1,6 +1,11 @@
 {% extends "base.html" %}
-{% load crispy_forms_tags %}
 
 {% block content_body %}
-    {% crispy form %}
+    <p>Events:</p>
+    
+    <ul>
+        {% for event in events %}
+        <li>{{ event.time }} - {{ event.mag_type }}{{ event.magnitude }}</li>
+        {% endfor %}
+    </ul>
 {% endblock content_body %}

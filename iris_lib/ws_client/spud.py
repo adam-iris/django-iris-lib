@@ -1,5 +1,5 @@
 import json
-from iris_lib.ws import ws_request
+from iris_lib.ws_client import ws_request
 
 class SpudEventProductsRequest(ws_request.BaseRequest):
 
