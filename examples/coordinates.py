@@ -17,9 +17,28 @@ class CoordinatesForm(FormHelperMixin, CoordinatesFormMixin, forms.Form):
     max_lon = forms.DecimalField()
     min_lon = forms.DecimalField()
 
+    center_lat = forms.DecimalField()
+    center_lon = forms.DecimalField()
+    max_radius = forms.DecimalField()
+    min_radius = forms.DecimalField()
+
+    def __init__(self, *args, **kwargs):
+        super(CoordinatesForm, self).__init__(*args, **kwargs)
+        self.include_nsew = kwargs.get('include_nsew', True)
+        self.include_cr = kwargs.get('include_cr', True)
+            
     def create_form_layout(self):
+        if self.include_nsew:
+            nsew = ['max_lat', 'min_lat', 'max_lon', 'min_lon']
+        else:
+            nsew = None
+        if self.include_cr:
+            cr = ['center_lat', 'center_lon', 'max_radius', 'min_radius']
+        else:
+            cr = None
         return Layout(
-            Coordinates(nsew=('max_lat', 'min_lat', 'max_lon', 'min_lon',),
+            Coordinates(
+                nsew=nsew, cr=cr,
                 css_id='location', label_html=_('Coordinates')),
             FormActions(
                 Submit('save', 'Save changes'),
