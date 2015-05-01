@@ -32,3 +32,11 @@
   /* IE8 filter */
   filter: ~"alpha(opacity=0)";
 }
+.info-bubble {
+  line-height: 1;
+  padding: 3px 12px;
+  font-size: 11px;
+  background: #fff;
+  border: 1px solid #999;
+  border-radius: 2px;
+}
