@@ -26,7 +26,9 @@ class Coordinates(LayoutObject):
     """
     Layout object to render N/S/E/W inputs and a button to trigger a popup map selector
     """
-    template = "coordinate_picker/layout.html"
+    template_nsew = "coordinate_picker/layout_nsew.html"
+    template_cr = "coordinate_picker/layout_cr.html"
+    template_nsew_cr = "coordinate_picker/layout_nsew_cr.html"
     
     def __init__(self, nsew=None, cr=None, **kwargs):
         if not (nsew or cr):
@@ -37,18 +39,17 @@ class Coordinates(LayoutObject):
         self.cr = cr
         self.css_class = kwargs.pop('css_class', None)
         self.css_id = kwargs.pop('css_id', None)
-        self.template = kwargs.pop('template', self.template)
         self.label_html = kwargs.pop('label_html', None)
         self.help_text = kwargs.pop('help_text', None)
     
     def render(self, form, form_style, context, template_pack=TEMPLATE_PACK, **kwargs):
         LOGGER.info("Coordinates")
         if self.nsew and self.cr:
-            template = 'coordinate_picker/layout_nsew_cr.html'
+            template = self.template_nsew_cr
         elif self.nsew:
-            template = 'coordinate_picker/layout_nsew.html'
+            template = self.template_nsew
         elif self.cr:
-            template = 'coordinate_picker/layout_cr.html'
+            template = self.template_cr
         subfields = {}
         if self.nsew:
             for i in range(4):
