@@ -4,17 +4,17 @@ import sys
 from setuptools import setup, find_packages
 
 
-setup(name='django-lib',
+setup(name='django-iris-lib',
       version='0.0.1',
       description='IRIS DMC common library',
-      long_description=open('README.rst').read(),
+      long_description=open('README.md').read(),
       classifiers=[],
       keywords='',
       author='Adam Clark',
       author_email='adam@iris.washington.edu',
       url='http://ds.iris.edu/',
       license='Apache 2',
-      packages=['lib'],
+      packages=find_packages(exclude=('examples','examples.*','www','www.*')),
       include_package_data=True,
       zip_safe=False,
       tests_require=[

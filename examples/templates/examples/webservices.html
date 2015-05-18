@@ -1,11 +1,27 @@
 {% extends "base.html" %}
 
 {% block content_body %}
-    <p>Events:</p>
-    
-    <ul>
-        {% for event in events %}
-        <li>{{ event.time }} - {{ event.mag_type }}{{ event.magnitude }}</li>
-        {% endfor %}
-    </ul>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Name</th>
+                <th>Magnitude</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for event in events %}
+            <tr>
+                <td>
+                    {{ event.time }}
+                </td>
+                <td>
+                    {{ event.location }}                    
+                </td>
+                <td>
+                    {{ event.mag_type }} {{ event.magnitude }}                    
+                </td>
+            {% endfor %}
+        </tbody>
+    </table>
 {% endblock content_body %}
