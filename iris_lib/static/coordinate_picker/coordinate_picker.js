@@ -1,4 +1,4 @@
-(function($, google, InfoBubble) {
+(function($, google) {
   'use strict'
 
   var Picker = function(root, options) {
@@ -7,6 +7,14 @@
     this.start();
   };
 
+  var baseShapeOptions = {
+    draggable: false,
+    editable: false,
+    clickable: false,
+    strokeWidth: 1,
+    strokeColor: '#6f6',
+    fillColor: '#6f6'
+  };
   Picker.prototype.defaults = {
     nsewInputs: [],
     openBtn: null,
@@ -18,29 +26,8 @@
       mapTypeId: google.maps.MapTypeId.ROADMAP,
       streetViewControl: false
     },
-    rectangleOptions: {
-      draggable: false,
-      editable: false,
-      clickable: false
-    },
-    circleOptions: {
-      draggable: false,
-      editable: false,
-      clickable: false
-    },
-    infoBubbleOptions: {
-      padding: 0,
-      borderWidth: 0,
-      shadowStyle: 0,
-      borderRadius: 0,
-      backgroundColor: 'none',
-      disableAutoPan: true,
-      disableAnimation: true,
-      hideCloseButton: true,
-      arrowStyle: 3,
-      arrowSize: 0,
-      backgroundClassName: 'info-bubble'
-    }
+    rectangleOptions: $.extend({}, baseShapeOptions),
+    circleOptions: $.extend({}, baseShapeOptions)
   };
 
   Picker.prototype.parseOptions = function(options) {
@@ -84,14 +71,14 @@
     var $cancelBtn = $('<button type="button" class="btn btn-default btn-sm">Cancel</button>');
     var $okCancelControls = $('<div class="coordinate-picker-bottom-controls">').append($okBtn, ' ', $cancelBtn);
 
+    var $cursorPos = $('<div class="well cursor-pos"></div>');
 
+    $drawPanControls.append(
+      $('<div class="pull-right">').append($cursorPos));
 
     var $qtipTarget = this.$root;
     var rectShape = null;
     var circleShape = null;
-    var infoBubbles = [
-      new InfoBubble(this.options.infoBubbleOptions),
-      new InfoBubble(this.options.infoBubbleOptions)]
     var drawStartPoint = null;
     var drawStartLatLng = null;
     var map = null;
@@ -162,9 +149,6 @@
         getLatLng(new google.maps.Point(left, bottom)),
         getLatLng(new google.maps.Point(right, top))
       ));
-      var latLng = getLatLng(point);
-      infoBubbles[1].setContent(printLatLng(latLng));
-      infoBubbles[1].setPosition(latLng);
     }
 
     function updateCircle(point) {
@@ -172,16 +156,14 @@
       var distance = google.maps.geometry.spherical.computeDistanceBetween(
         drawStartLatLng, latLng);
       circleShape.setRadius(distance);
-      infoBubbles[1].setContent(printLatLng(latLng));
-      infoBubbles[1].setPosition(latLng);
     }
 
     function startRect(n, s, e, w) {
-      var ne = new google.maps.LatLng(n, e);
       var sw = new google.maps.LatLng(s, w);
+      var ne = new google.maps.LatLng(n, e);
       var rectOptions = {
         map: map,
-        bounds: new google.maps.LatLngBounds(ne, sw)
+        bounds: new google.maps.LatLngBounds(sw, ne)
       };
       if (rectShape) {
         rectShape.setOptions(rectOptions);
@@ -190,14 +172,6 @@
           $.extend({}, _this.options.rectangleOptions, rectOptions)
         );
       }
-      infoBubbles[0].setContent(printLatLng(ne));
-      infoBubbles[0].setPosition(ne);
-      infoBubbles[0].setMap(map);
-      infoBubbles[0].open();
-      infoBubbles[1].setContent(printLatLng(sw));
-      infoBubbles[1].setPosition(sw);
-      infoBubbles[1].setMap(map);
-      infoBubbles[1].open();
     }
 
     function startCircle(lat, lon, r) {
@@ -212,14 +186,6 @@
       } else {
         circleShape = new google.maps.Circle(circleOptions);
       }
-      infoBubbles[0].setContent(printLatLng(center));
-      infoBubbles[0].setPosition(center);
-      infoBubbles[0].setMap(map);
-      infoBubbles[0].open();
-      infoBubbles[1].setContent(printLatLng(center));
-      infoBubbles[1].setPosition(center);
-      infoBubbles[1].setMap(map);
-      infoBubbles[1].open();
     }
 
     function startDrawing(e) {
@@ -246,6 +212,7 @@
     var lastPoint = null
     function keepDrawing(e) {
       lastPoint = getPoint(e.pageX, e.pageY);
+      $cursorPos.html(printLatLng(getLatLng(lastPoint)));
       if (!debounceTimeout) {
         debounceTimeout = window.setTimeout(keepDrawingDebounced, DEBOUNCE);
       }
@@ -277,7 +244,9 @@
           startDrawing(e);
         }
       });
-      $(document).mousemove(function(e) {
+      $map.mousemove(function(e) {
+        var point = getPoint(e.pageX, e.pageY);
+        $cursorPos.html(printLatLng(getLatLng(point)));
         if (drawingMode && drawStartPoint) {
           keepDrawing(e);
         }
@@ -309,6 +278,7 @@
       // Zoom into current bounds on initial open
       if (firstTime) {
         google.maps.event.addListenerOnce(map, 'idle', function(r) {
+          map.controls[google.maps.ControlPosition.BOTTOM_RIGHT].push($cursorPos);
           map.fitBounds(rectShape.getBounds());
           if (map.getZoom() > 5) {
             map.setZoom(5);
@@ -392,7 +362,14 @@
         _this.$inputE.val(bounds.getNorthEast().lng().toFixed(3));
       }
       if (circleShape) {
-        _this.$input
+        _this.$inputCenterLat.val(circleShape.getCenter().lat().toFixed(3));
+        _this.$inputCenterLon.val(circleShape.getCenter().lng().toFixed(3));
+        var radius = circleShape.getRadius();
+        // Hacky meters/degrees conversion, get the longitude of moving the distance East from 0,0
+        var offset = google.maps.geometry.spherical.computeOffset(
+          new google.maps.LatLng(0, 0), radius, 90);
+        var degrees = offset.lng();
+        _this.$inputMaxRadius.val(degrees.toFixed(3));
       }
     });
   };
