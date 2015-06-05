@@ -2,7 +2,7 @@ from django.conf import settings
 from django import forms
 import copy
 import json
-from lib.raw_js_json import RawJsJSONEncoder
+from iris_lib.raw_js_json import RawJsJSONEncoder
 from django.utils.safestring import mark_safe
 from django.templatetags.static import static
 

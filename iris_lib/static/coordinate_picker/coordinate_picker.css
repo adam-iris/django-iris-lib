@@ -13,6 +13,8 @@
 }
 .coordinate-picker-form-group input.form-control {
   width: 8em;
+  margin-left: auto;
+  margin-right: auto;
 }
 .coordinate-picker-form-group td {
   text-align: center;

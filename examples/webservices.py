@@ -3,8 +3,8 @@ from django.views.generic.edit import FormView
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit
 from crispy_forms.bootstrap import FormActions
-from lib.coordinates import Coordinates
-from lib.crispy_forms_mixins import FormHelperMixin
+from iris_lib.coordinates import Coordinates
+from iris_lib.crispy_forms_mixins import FormHelperMixin
 
 
 class WebserviceForm(FormHelperMixin, forms.Form):
