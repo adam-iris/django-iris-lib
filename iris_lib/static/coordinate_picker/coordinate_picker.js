@@ -8,6 +8,9 @@
     }
     var LOG = window.LOG;
 
+    /* Conversion factor from degrees to meters */
+    var DEG_TO_M = (2 * Math.PI * 6378137) / 360;
+
     /*
     Create a new picker
 
@@ -52,7 +55,7 @@
             streetViewControl: false
         },
         /* Available drawing modes, modify this to deactivate one or the other */
-        drawingModes: ['rect', 'circle'],
+        drawingModes: 'rect,circle',
         /* NSEW rectangle options */
         rectangleOptions: $.extend({}, baseShapeOptions),
         /* CR circle options */
@@ -98,9 +101,13 @@
         // Drawing controls
         if (this.hasDrawingMode('rect')) {
           this.$rectBtn = $('<button type="button" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-pencil"></span> Draw Box</button>');
+        } else {
+          this.$rectBtn = $();
         }
         if (this.hasDrawingMode('circle')) {
           this.$circleBtn = $('<button type="button" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-pencil"></span> Draw Circle</button>');
+        } else {
+          this.$circleBtn = $();
         }
         this.$panBtn = $('<button type="button" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-move"></span> Pan/Zoom</button>');
         this.$drawPanControls = $('<div class="coordinate-picker-top-controls">').append(
@@ -160,11 +167,41 @@
         this.$panBtn.click(function() { _this.setDrawingMode(null); });
     };
     Picker.prototype.initShapes = function() {
+        var firstTime = true;
         if (this.hasDrawingMode('rect')) {
+            if (this.rectShape) {
+                firstTime = false;
+            }
             this.initRect();
         }
         if (this.hasDrawingMode('circle')) {
-          this.initCircle();
+            if (this.circleShape) {
+                firstTime = false;
+            }
+            this.initCircle();
+        }
+        // Zoom into current bounds on initial open
+        if (firstTime) {
+            var bounds = null;
+            if (this.rectShape) {
+                bounds = this.rectShape.getBounds();
+            }
+            if (this.circleShape) {
+                if (bounds) {
+                    bounds.union(this.circleShape.getBounds());
+                } else {
+                    bounds = this.circleShape.getBounds();
+                }
+            }
+            if (bounds) {
+                var self = this;
+                google.maps.event.addListenerOnce(this.map, 'idle', function(r) {
+                    self.map.fitBounds(bounds);
+                    if (self.map.getZoom() > 5) {
+                        self.map.setZoom(5);
+                    }
+                });
+            }
         }
     }
     /* Position is from mouse event evt.pageX, evt.pageY */
@@ -192,11 +229,10 @@
 
 
     Picker.prototype.initRect = function() {
-      var self = this;
-      var locN = parseFloat(self.$inputN.val());
-      var locS = parseFloat(self.$inputS.val());
-      var locE = parseFloat(self.$inputE.val());
-      var locW = parseFloat(self.$inputW.val());
+      var locN = parseFloat(this.$inputN.val());
+      var locS = parseFloat(this.$inputS.val());
+      var locE = parseFloat(this.$inputE.val());
+      var locW = parseFloat(this.$inputW.val());
       // Skip if no/invalid coordinates
       if (isNaN(locN) || isNaN(locS) || isNaN(locE) || isNaN(locW)) {
           return;
@@ -205,19 +241,7 @@
       if (locN > 89 && locS < -89 && locE > 179 && locW < -179) {
           return;
       }
-      var firstTime = !self.rectShape;
-      self.startRect(locN, locS, locE, locW);
-
-      // Zoom into current bounds on initial open
-      if (firstTime) {
-          google.maps.event.addListenerOnce(self.map, 'idle', function(r) {
-              self.map.controls[google.maps.ControlPosition.BOTTOM_RIGHT].push(self.$cursorPos);
-              self.map.fitBounds(self.rectShape.getBounds());
-              if (self.map.getZoom() > 5) {
-                  self.map.setZoom(5);
-              }
-          });
-      }
+      this.startRect(locN, locS, locE, locW);
     };
     /* Start a NSEW rect */
     Picker.prototype.startRect = function(n, s, e, w) {
@@ -251,28 +275,16 @@
     };
 
     Picker.prototype.initCircle = function() {
-      var self = this;
-      var centerLat = parseFloat(self.$inputCenterLat.val());
-      var centerLon = parseFloat(self.$inputCenterLon.val());
-      var maxRadius = parseFloat(self.$inputMaxRadius.val());
-      var minRadius = parseFloat(self.$inputMinRadius.val());
+      var centerLat = parseFloat(this.$inputCenterLat.val());
+      var centerLon = parseFloat(this.$inputCenterLon.val());
+      var maxRadius = parseFloat(this.$inputMaxRadius.val());
+      var minRadius = parseFloat(this.$inputMinRadius.val());
       // Skip if no/invalid coordinates
       if (isNaN(centerLat) || isNaN(centerLon) || isNaN(maxRadius)) {
           return;
       }
-
-      var firstTime = !self.circleShape;
-      self.startCircle(centerLat, centerLon, maxRadius);
-
-      // Zoom into current bounds on initial open
-      if (firstTime) {
-          google.maps.event.addListenerOnce(self.map, 'idle', function(r) {
-              self.map.fitBounds(self.circleShape.getBounds());
-              if (self.map.getZoom() > 5) {
-                  self.map.setZoom(5);
-              }
-          });
-      }
+      var radius = maxRadius * DEG_TO_M;
+      this.startCircle(centerLat, centerLon, radius);
     };
     /* Start a CR circle */
     Picker.prototype.startCircle = function(lat, lon, r) {
@@ -299,30 +311,27 @@
 
     /* Establish the starting point for drawing */
     Picker.prototype.startDrawing = function(e) {
-        if (this.rectShape) {
-            this.rectShape.setMap(null);
-        }
-        if (this.circleShape) {
-            this.circleShape.setMap(null);
-        }
         this.drawStartPoint = this.getPoint(e.pageX, e.pageY);
         this.drawStartLatLng = this.getLatLng(this.drawStartPoint);
         var startLat = this.drawStartLatLng.lat();
         var startLng = this.drawStartLatLng.lng();
         if (this.drawingMode === 'rect') {
+            if (this.rectShape) {
+                this.rectShape.setMap(null);
+            }
             this.startRect(startLat, startLat, startLng, startLng);
         }
         else if (this.drawingMode === 'circle') {
+            if (this.circleShape) {
+                this.circleShape.setMap(null);
+            }
             this.startCircle(startLat, startLng, 0);
         }
     };
 
     /* Called continuously while drawing */
     Picker.prototype.keepDrawing = function(e) {
-        // Show the cursor position in map coordinates
-        this.lastPoint = this.getPoint(e.pageX, e.pageY);
-        this.$cursorPos.html(this.printLatLng(this.getLatLng(this.lastPoint)));
-        // More expensive functions run debounced
+        // Shape drawing is expensive, so run debounced
         if (!this.debounceTimeout) {
             var _this = this;
             this.debounceTimeout = window.setTimeout(function() {
@@ -331,7 +340,7 @@
             }, this.options.redrawTimeout);
         }
     };
-    /* Called continuously while drawing; update the relevant shape based on drawing mode */
+    /* Debounced update function; update the relevant shape based on drawing mode */
     Picker.prototype.keepDrawingDebounced = function() {
         if (this.drawingMode === 'rect') {
             this.updateRect(this.lastPoint);
@@ -361,8 +370,10 @@
             }
         });
         self.$map.mousemove(function(e) {
-            var point = self.getPoint(e.pageX, e.pageY);
-            self.$cursorPos.html(self.printLatLng(self.getLatLng(point)));
+            // Show the cursor position in map coordinates
+            self.lastPoint = self.getPoint(e.pageX, e.pageY);
+            self.$cursorPos.html(self.printLatLng(self.getLatLng(self.lastPoint)));
+            // If drawing, update shape
             if (self.drawingMode && self.drawStartPoint) {
                 self.keepDrawing(e);
             }

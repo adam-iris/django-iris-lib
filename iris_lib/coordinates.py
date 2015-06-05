@@ -15,9 +15,8 @@ class CoordinatesFormMixin(object):
             )
         }
         js = (
-            '//maps.googleapis.com/maps/api/js',
+            '//maps.googleapis.com/maps/api/js?libraries=geometry',
             '//cdn.jsdelivr.net/qtip2/2.2.1/jquery.qtip.js',
-            'libs/gmaps/infobubble.js',
             'coordinate_picker/coordinate_picker.js',
         )
 
@@ -29,7 +28,7 @@ class Coordinates(LayoutObject):
     template_nsew = "coordinate_picker/layout_nsew.html"
     template_cr = "coordinate_picker/layout_cr.html"
     template_nsew_cr = "coordinate_picker/layout_nsew_cr.html"
-    
+
     def __init__(self, nsew=None, cr=None, **kwargs):
         if not (nsew or cr):
             raise Exception("Need one or both of NSEW or Center/Radius inputs")
@@ -41,7 +40,7 @@ class Coordinates(LayoutObject):
         self.css_id = kwargs.pop('css_id', None)
         self.label_html = kwargs.pop('label_html', None)
         self.help_text = kwargs.pop('help_text', None)
-    
+
     def render(self, form, form_style, context, template_pack=TEMPLATE_PACK, **kwargs):
         LOGGER.info("Coordinates")
         if self.nsew and self.cr:
@@ -67,4 +66,4 @@ class Coordinates(LayoutObject):
             template,
             {'wrapper': self, 'subfields': subfields},
             context
-        )    
+        )

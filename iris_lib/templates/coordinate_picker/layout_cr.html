@@ -63,7 +63,7 @@
       </div>
       {% endwith %}
 
-      <div class="text-center">      
+      <div class="text-center">
         <button type="button" class="btn btn-default" id="{{ wrapper.css_id }}-map-btn">
           Use Map
         </button>
@@ -78,6 +78,7 @@
 $(function() {
   $("#{{ wrapper.css_id }}").coordinate_picker({
     openBtn: $("#{{ wrapper.css_id }}-map-btn"),
+    drawingModes: 'circle',
     crInputs: [$('#{{ subfields.center_lat.id_for_label }}'),
                 $('#{{ subfields.center_lon.id_for_label }}'),
                 $('#{{ subfields.max_radius.id_for_label }}'),

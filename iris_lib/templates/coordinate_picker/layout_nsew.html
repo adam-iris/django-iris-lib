@@ -67,6 +67,7 @@
 $(function() {
   $("#{{ wrapper.css_id }}").coordinate_picker({
     openBtn: $("#{{ wrapper.css_id }}-map-btn"),
+    drawingModes: 'rect',
     nsewInputs: [$('#{{ subfields.n.id_for_label }}'),
                  $('#{{ subfields.s.id_for_label }}'),
                  $('#{{ subfields.e.id_for_label }}'),
