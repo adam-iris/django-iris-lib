@@ -1,0 +1,55 @@
+{% load crispy_forms_tags %}
+{% load crispy_forms_utils %}
+{% load crispy_forms_field %}
+
+<div class="inline-formset">
+  <div>
+      {{ formset.management_form|crispy }}
+  </div>
+  {% if formset.non_form_errors %}
+    <div class="alert alert-block alert-danger">
+        <ul>
+            {{ formset.non_form_errors|unordered_list }}
+        </ul>
+    </div>
+  {% endif %}
+  <table class="table table-striped table-condensed table-bordered">
+    <thead>
+      <tr>
+        {% for field in formset.forms.0 %}
+          {% if not field.is_hidden %}
+            <th>
+              {{ field.label|safe }}
+            </th>
+          {% endif %}
+        {% endfor %}
+      </tr>
+      {% if formset.forms.0.examples %}
+        <tr class="example">
+          {% for example in formset.forms.0.examples %}
+            <td>{% if example %}<i>ex:</i> {{ example }}{% endif %}</td>
+          {% endfor %}
+        </tr>
+      {% endif %}
+    </thead>
+    <tbody>
+      {% for form in formset %}
+        {% if form_show_errors and not form.is_extra %}
+          {% include "bootstrap/errors.html" %}
+        {% endif %}
+        <tr>
+          {% for field in form %}
+            {% if field.is_hidden %}
+              {% crispy_field field %}
+            {% else %}
+              <td class="control-group{% if field.errors %} has-error{% endif %}">
+                {% crispy_field field %}
+                {% include 'bootstrap/layout/field_errors_block.html' %}
+              </td>
+            {% endif %}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

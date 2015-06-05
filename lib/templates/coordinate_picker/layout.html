@@ -1,0 +1,74 @@
+{% load crispy_forms_field %}
+
+<div class="form-group" id="{{ wrapper.css_id }}">
+  {% if wrapper.label_html %}
+    <label class="control-label {{ label_class }}">
+      {{ wrapper.label_html|safe }}
+    </label>
+  {% endif %}
+  <div class="controls {{ field_class }}">
+    <div class="form-inline coordinate-picker-form-group">
+      <table>
+        <tr>
+          <td colspan="3" class="{% if subfields.n.errors %}has-error{% endif %}">
+            <label for="{{ subfields.n.id_for_label }}"
+                class="control-label {% if subfields.n.field.required %}requiredField{% endif %}">
+              {{ subfields.n.label|safe }}{% if subfields.n.field.required %}<span class="asteriskField">*</span>{% endif %}
+            </label>
+            <br/>
+            {% crispy_field subfields.n %}
+            {% include 'coordinate_picker/field_errors.html' with field=subfields.n %}
+          </td>
+        </tr>
+        <tr>
+          <td class="{% if subfields.w.errors %}has-error{% endif %}">
+            <label for="{{ subfields.w.id_for_label }}"
+                class="control-label {% if subfields.w.field.required %}requiredField{% endif %}">
+              {{ subfields.w.label|safe }}{% if subfields.w.field.required %}<span class="asteriskField">*</span>{% endif %}
+            </label>
+            {% crispy_field subfields.w %}
+            {% include 'coordinate_picker/field_errors.html' with field=subfields.w %}
+          </td>
+          <td>
+            <button type="button" class="btn btn-default" id="{{ wrapper.css_id }}-map-btn">
+              Use Map
+            </button>
+          </td>
+          <td class="{% if subfields.e.errors %}has-error{% endif %}">
+            {% crispy_field subfields.e %}
+            <label for="{{ subfields.e.id_for_label }}"
+                class="control-label {% if subfields.e.field.required %}requiredField{% endif %}">
+              {{ subfields.e.label|safe }}{% if subfields.e.field.required %}<span class="asteriskField">*</span>{% endif %}
+            </label>
+            {% include 'coordinate_picker/field_errors.html' with field=subfields.e %}
+          </td>
+        </tr>
+        <tr>
+          <td colspan="3" class="{% if subfields.s.errors %}has-error{% endif %}">
+            {% crispy_field subfields.s %}
+            <br/>
+            <label for="{{ subfields.s.id_for_label }}"
+                class="control-label {% if subfields.s.field.required %}requiredField{% endif %}">
+              {{ subfields.s.label|safe }}{% if subfields.s.field.required %}<span class="asteriskField">*</span>{% endif %}
+            </label>
+            {% include 'coordinate_picker/field_errors.html' with field=subfields.s %}
+          </td>
+        </tr>
+      </table>
+    </div>
+    {% if wrapper.help_text %}
+    <div class="help-block">{{ wrapper.help_text|safe }}</div>
+    {% endif %}
+  </div>
+</div>
+<script lang="javascript">
+$(function() {
+  $("#{{ wrapper.css_id }}").coordinate_picker({
+    openBtn: $("#{{ wrapper.css_id }}-map-btn"),
+    nsewInputs: [$('#{{ subfields.n.id_for_label }}'),
+                 $('#{{ subfields.s.id_for_label }}'),
+                 $('#{{ subfields.e.id_for_label }}'),
+                 $('#{{ subfields.w.id_for_label }}')]
+  });
+});
+</script>
