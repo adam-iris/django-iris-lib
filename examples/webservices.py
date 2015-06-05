@@ -13,8 +13,8 @@ class WebserviceView(TemplateView):
     
     def get_ws_data(self):
         req = EventRequest(
-            startdate=datetime.datetime(2015, 1, 1),
-            enddate=datetime.datetime(2015, 1, 5),
+            starttime=datetime.datetime(2015, 1, 1),
+            endtime=datetime.datetime(2015, 1, 5),
         )
         return req.get()
     
