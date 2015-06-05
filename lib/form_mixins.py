@@ -1,6 +1,5 @@
 from django.utils.translation import ugettext as _
 from django.db import models
-import stopspam
 from django.utils.log import getLogger
 from django.views.generic.edit import ModelFormMixin, FormMixin
 from django.http.response import HttpResponseRedirect
@@ -106,15 +105,15 @@ class SpamCheckMixin(FormSaveMixin):
         """
         Check the requester IP address and email against spam database
         """
-        try:
-            spam_score = 0
-            for spam_field in (self.object.ip_address, self.object.email):
-                score = stopspam.confidence(spam_field)
-                if score > spam_score:
-                    spam_score = score
-            self.object.spam_score = int(spam_score)
-        except Exception as e:
-            LOGGER.error("Failed to run spam check: %s", e)
+        # try:
+        #     spam_score = 0
+        #     for spam_field in (self.object.ip_address, self.object.email):
+        #         score = stopspam.confidence(spam_field)
+        #         if score > spam_score:
+        #             spam_score = score
+        #     self.object.spam_score = int(spam_score)
+        # except Exception as e:
+        #     LOGGER.error("Failed to run spam check: %s", e)
 
     def before_save(self):
         """
