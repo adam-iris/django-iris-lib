@@ -1,0 +1,87 @@
+{% load crispy_forms_field %}
+
+<div class="form-group" id="{{ wrapper.css_id }}">
+  {% if wrapper.label_html %}
+    <label class="control-label {{ label_class }}">
+      {{ wrapper.label_html|safe }}
+    </label>
+  {% endif %}
+  <div class="controls {{ field_class }}">
+    <div class="form-inline coordinate-picker-form-group">
+      {% with field=subfields.center_lat %}
+      <div class="row">
+        <div class="col-xs-6 text-right">
+          {% include 'coordinate_picker/field_label.html' %}
+        </div>
+        <div class="col-xs-6">
+          <div>
+              {% crispy_field field %}
+              {% include 'coordinate_picker/field_errors.html' %}
+          </div>
+        </div>
+      </div>
+      {% endwith %}
+      {% with field=subfields.center_lon %}
+      <div class="row">
+        <div class="col-xs-6 text-right">
+          {% include 'coordinate_picker/field_label.html' %}
+        </div>
+        <div class="col-xs-6">
+          <div>
+              {% crispy_field field %}
+              {% include 'coordinate_picker/field_errors.html' %}
+          </div>
+        </div>
+      </div>
+      {% endwith %}
+      {% if subfields.min_radius %}
+      {% with field=subfields.min_radius %}
+      <div class="row">
+        <div class="col-xs-6 text-right">
+          {% include 'coordinate_picker/field_label.html' %}
+        </div>
+        <div class="col-xs-6">
+          <div>
+              {% crispy_field field %}
+              {% include 'coordinate_picker/field_errors.html' %}
+          </div>
+        </div>
+      </div>
+      {% endwith %}
+      {% endif %}
+      {% with field=subfields.max_radius %}
+      <div class="row">
+        <div class="col-xs-6 text-right">
+          {% include 'coordinate_picker/field_label.html' %}
+        </div>
+        <div class="col-xs-6">
+          <div>
+              {% crispy_field field %}
+              {% include 'coordinate_picker/field_errors.html' %}
+          </div>
+        </div>
+      </div>
+      {% endwith %}
+
+      <div class="text-center">      
+        <button type="button" class="btn btn-default" id="{{ wrapper.css_id }}-map-btn">
+          Use Map
+        </button>
+      </div>
+    </div>
+    {% if wrapper.help_text %}
+    <div class="help-block">{{ wrapper.help_text|safe }}</div>
+    {% endif %}
+  </div>
+</div>
+<script lang="javascript">
+$(function() {
+  $("#{{ wrapper.css_id }}").coordinate_picker({
+    openBtn: $("#{{ wrapper.css_id }}-map-btn"),
+    crInputs: [$('#{{ subfields.center_lat.id_for_label }}'),
+                $('#{{ subfields.center_lon.id_for_label }}'),
+                $('#{{ subfields.max_radius.id_for_label }}'),
+                $('#{{ subfields.min_radius.id_for_label }}')],
+  });
+});
+</script>

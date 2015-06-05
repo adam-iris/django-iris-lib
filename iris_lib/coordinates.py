@@ -41,8 +41,13 @@ class Coordinates(LayoutObject):
         self.help_text = kwargs.pop('help_text', None)
     
     def render(self, form, form_style, context, template_pack=TEMPLATE_PACK, **kwargs):
-        template = self.template
         LOGGER.info("Coordinates")
+        if self.nsew and self.cr:
+            template = 'coordinate_picker/layout_nsew_cr.html'
+        elif self.nsew:
+            template = 'coordinate_picker/layout_nsew.html'
+        elif self.cr:
+            template = 'coordinate_picker/layout_cr.html'
         subfields = {}
         if self.nsew:
             for i in range(4):
@@ -52,7 +57,7 @@ class Coordinates(LayoutObject):
                 LOGGER.info("Subfield: %s" % subfields[label].field)
         if self.cr:
             for i in range(len(self.cr)):
-                label = ['center', 'max_radius', 'min_radius'][i]
+                label = ['center_lat', 'center_lon', 'max_radius', 'min_radius'][i]
                 field = self.cr[i]
                 subfields[label] = form[field]
                 LOGGER.info("Subfield: %s" % subfields[label].field)

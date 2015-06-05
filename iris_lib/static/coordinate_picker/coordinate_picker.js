@@ -50,6 +50,11 @@
     this.$inputE = $(this.options.nsewInputs[2] || $('input[name*=east]', this.$root));
     this.$inputW = $(this.options.nsewInputs[3] || $('input[name*=west]', this.$root));
 
+    this.$inputCenterLat = $(this.options.crInputs[0] || $('input[name*=center_lat]', this.$root));
+    this.$inputCenterLon = $(this.options.crInputs[1] || $('input[name*=center_lon]', this.$root));
+    this.$inputMaxRadius = $(this.options.crInputs[2] || $('input[name*=max_radius]', this.$root));
+    this.$inputMinRadius = $(this.options.crInputs[3] || $('input[name*=min_radius]', this.$root));
+
     // Div that the map attaches to
     var $map = $('<div class="coordinate-picker-map" style="width:'+this.options.width+'px;height:'+this.options.height+'px;"></div>');
     // Overlay sits on top of the map so we can capture mouse events
@@ -140,6 +145,33 @@
       circleShape.setRadius(distance);
     }
 
+    function startRect(n, s, e, w) {
+      var rectOptions = {
+        map: map,
+        bounds: new google.maps.LatLngBounds({'lat':n, 'lng':e}, {'lat':s, 'lng':w})
+      };
+      if (rectShape) {
+        rectShape.setOptions(rectOptions);
+      } else {
+        rectShape = new google.maps.Rectangle(
+          $.extend({}, _this.options.rectangleOptions, rectOptions)
+        );
+      }
+    }
+
+    function startCircle(lat, lon, r) {
+      var circleOptions = $.extend({}, _this.options.circleOptions, {
+        map: map,
+        center: {'lat':lat, 'lng':lon},
+        radius: r
+      });
+      if (circleShape) {
+        circleShape.setOptions(circleOptions);
+      } else {
+        circleShape = new google.maps.Circle(circleOptions);
+      }
+    }
+
     function startDrawing(e) {
       if (rectShape) {
         rectShape.setMap(null);
@@ -150,27 +182,10 @@
       drawStartPoint = getPoint(e.pageX, e.pageY);
       drawStartLatLng = getLatLng(drawStartPoint);
       if (drawingMode === 'rect') {
-        var rectOptions = $.extend({}, _this.options.rectangleOptions, {
-          map: map,
-          bounds: new google.maps.LatLngBounds(drawStartLatLng, drawStartLatLng)
-        });
-        if (rectShape) {
-          rectShape.setOptions(rectOptions);
-        } else {
-          rectShape = new google.maps.Rectangle(rectOptions);
-        }
+        startRect(drawStartLatLng.lat(), drawStartLatLng.lat(), drawStartLatLng.lng(), drawStartLatLng.lng());
       }
       else if (drawingMode === 'circle') {
-        var circleOptions = $.extend({}, _this.options.circleOptions, {
-          map: map,
-          center: drawStartLatLng,
-          radius: 0
-        });
-        if (circleShape) {
-          circleShape.setOptions(circleOptions);
-        } else {
-          circleShape = new google.maps.Circle(circleOptions);
-        }
+        startCircle(drawStartLatLng.lat(), drawStartLatLng.lat(), 0);
       }
     }
     // Debounce the refresh method
@@ -238,25 +253,36 @@
       if (locN > 89 && locS < -89 && locE > 179 && locW < -179) {
         return;
       }
-      var firstTime = false;
-      if (rectShape) {
-        rectShape.setMap(null);
-      } else {
-        firstTime = true;
-      }
-      rectShape = new google.maps.Rectangle(
-        $.extend( {}, _this.options.rectangleOptions, {
-          map: map,
-          bounds: new google.maps.LatLngBounds(
-            new google.maps.LatLng(locS,locW),
-            new google.maps.LatLng(locN,locE)
-          )
-        })
-      );
+      var firstTime = !rectShape;
+      startRect(locN, locS, locE, locW);
+
       // Zoom into current bounds on initial open
       if (firstTime) {
         google.maps.event.addListenerOnce(map, 'idle', function(r) {
           map.fitBounds(rectShape.getBounds());
+          if (map.getZoom() > 5) {
+            map.setZoom(5);
+          }
+        });
+      }
+    }
+    function initCircle() {
+      var centerLat = parseFloat(_this.$inputCenterLat.val());
+      var centerLon = parseFloat(_this.$inputCenterLon.val());
+      var maxRadius = parseFloat(_this.$inputMaxRadius.val());
+      var minRadius = parseFloat(_this.$inputMinRadius.val());
+      // Skip if no/invalid coordinates
+      if (isNaN(centerLat) || isNaN(centerLon) || isNaN(maxRadius)) {
+        return;
+      }
+      
+      var firstTime = !circleShape;
+      startCircle(centerLat, centerLon, maxRadius);
+
+      // Zoom into current bounds on initial open
+      if (firstTime) {
+        google.maps.event.addListenerOnce(map, 'idle', function(r) {
+          map.fitBounds(circleShape.getBounds());
           if (map.getZoom() > 5) {
             map.setZoom(5);
           }
@@ -314,6 +340,9 @@
         _this.$inputW.val(bounds.getSouthWest().lng().toFixed(3));
         _this.$inputN.val(bounds.getNorthEast().lat().toFixed(3));
         _this.$inputE.val(bounds.getNorthEast().lng().toFixed(3));
+      }
+      if (circleShape) {
+        _this.$input
       }
     });
   };
