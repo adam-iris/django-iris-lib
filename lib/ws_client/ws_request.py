@@ -1,5 +1,42 @@
 import requests
 
+###
+# Webservice request library
+#
+# Example:
+#
+# class MyRequest(BaseRequest):
+#     """
+#     Define a particular webservice request
+#     """
+#     # These are the keys and types that can be passed into the query
+#     param_types = {
+#         # A generic string parameter
+#         'name': WSParam(),
+#         # A date, will be put in the query as ISO format
+#         'birthday': WSDateParam(),
+#     }
+#     # Base query url
+#     url = 'http://hostname/path/to/query'
+# 
+# req = MyRequest(name='Foo', birthday=datetime.date(1983,5,12))
+# 
+# response = """
+# # id | name | message
+# 1|Foo|Hi there
+# 2|Bar|Yarr
+# """
+# 
+# for row in req.get():
+#     name = row['name']
+#     message = row['message']
+#     print '%s says "%s"' % (name, message)
+# 
+# prints = """
+# Foo says "Hi there"
+# Bar says "Yarr"
+# """
+
 class WSParam(object):
     """
     Defines a web service query parameter.  This allows the service API to take parameter
