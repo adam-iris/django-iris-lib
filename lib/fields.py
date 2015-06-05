@@ -2,87 +2,54 @@ from django.utils.translation import ugettext_lazy as _
 from django.core.validators import RegexValidator
 
 
-class Choice(object):
-    """
-    A single option in a Choices type.
-    """
-    # Global counter allows choices to be kept in order of definition
-    _counter = 0
-
-    def __init__(self, label=None, value=None):
-        self.label = label
-        self.value = value
-        self._counter = Choice._counter
-        Choice._counter += 1
-
-
-class ChoicesMeta(type):
-    """
-    Metaclass for a Choices type.
-    """
-    def __new__(cls, name, bases, attrs):
-        labels = {}
-        # The choices are in the `attrs` dict; sort them by definition order
-        ordered_choices = sorted(
-            [(attr, choice) for attr, choice in attrs.iteritems() if isinstance(choice, Choice)],
-            cmp=lambda x, y: cmp(x[1]._counter, y[1]._counter)
-        )
-        for attr, choice in ordered_choices:
-            # Default value is the attribute name
-            if choice.value is None:
-                choice.value = attr
-            # Default label is a title-ized attribute name
-            if choice.label is None:
-                choice.label = _(str(attr).replace('_', ' ').title())
-            value = choice.value
-            # Set the actual class attributes to reflect the choice value
-            attrs[attr] = attrs[value] = value
-            labels[attr] = labels[value] = choice.label
-        # Add the choices as an ordered list, and a label lookup dict, to the class attributes
-        attrs['_choices'] = ordered_choices
-        attrs['_labels'] = labels
-        return type.__new__(cls, name, bases, attrs)
-
-
-class Choices(object):
-    """
-    This is sort of like an enum, but geared toward use in a Django field.
-
-    >>> class MyChoices(Choices):
-    ...    VALUE1 = Choice("First Value")
-    ...    VALUE2 = Choice("Second Value")
-
-    >>> # By default, the field value is the attribute name
-    >>> MyChoices.VALUE1
-    'VALUE1'
-
-    >>> # You can get the label for any choice value
-    >>> MyChoices.get_label(MyChoices.VALUE1)
-    'First Value'
-
-    >>> # The choices can be returned in a format suitable for a Model field
-    >>> MyChoices.get_choices()
-    [('VALUE1', 'First Value'), ('VALUE2', 'Second Value')]
-
-    """
-    __metaclass__ = ChoicesMeta
-
-    @classmethod
-    def get_choices(cls):
-        choices = []
-        for attr, choice in cls._choices:
-            value = getattr(cls, attr)
-            label = choice.label
-            choices.append((value, label))
-        return choices
-
-    @classmethod
-    def get_label(cls, attr):
-        return cls._labels.get(attr)
-
-
 class DOIValidator(RegexValidator):
     regex = r'doi:\d+\.\d+/\S+\w'
     message = _('Invalid DOI. DOIs must be in the form "doi:DD.DDDD/XXXX"')
     code = 'invalid'
 validate_doi = DOIValidator()
+
+
+def validate_true(value):
+    """
+    Validates that the value is true.  Useful for BooleanField that must be checked
+    (eg. acceptance of licensing terms)
+    """
+    if not value:
+        raise ValidationError(_('This field is required'))
+
+
+######
+# Helpers to create a required boolean form input with radio buttons, eg.
+# ( ) Yes  ( ) No
+# You need to distinguish between False (user chose No) and None (user didn't choose anything)
+# The way to make this work is:
+#
+# class MyForm(forms.Form):
+#   req_bool = forms.TypedChoiceField(choices=YES_NO_CHOICES, coerce=YES_NO_COERCE, label=_("Yes or no?"))
+#
+# Assuming you're using django-crispy-forms, in the Layout use:
+#   InlineRadios('req_bool')
+#
+# The input will raise an error if nothing is selected, and yield a True/False value otherwise
+######
+
+YES_NO_CHOICES = (
+    ("Y", _('Yes')),
+    ("N", _('No'))
+)
+
+def YES_NO_COERCE(val):
+    """
+    Coerce a yes/no choice value into a boolean
+    """
+    return val == "Y"
+
+def validate_picked(value):
+    """
+    When a BooleanField has choices, validates that one of them was picked.
+    """
+    if value == None:
+        raise ValidationError(_('This field is required'))
+
+
+
