@@ -1,3 +1,5 @@
+from django.utils.translation import ugettext_lazy as _
+
 ######
 #
 # This is sort of like an enum, but geared toward use in a Django field.

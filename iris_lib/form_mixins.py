@@ -87,6 +87,15 @@ class FormSaveMixin(FormMixin):
         return super(FormSaveMixin,self).form_valid(form)
 
 
+def get_request_ip_address(request):
+    """
+    Get the IP address of a request.  If the request was proxied, the original client address
+    will be listed under X-Forwarded-For, possibly followed by other intermediate proxy addresses.
+    """
+    ip_list = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR'))
+    return ip_list.split(',')[0]
+
+
 class SpamCheckMixin(FormSaveMixin):
     """
     Mixin for a class-based view whose model uses FormModelMixin; this provides functions to record
@@ -98,9 +107,7 @@ class SpamCheckMixin(FormSaveMixin):
         """
         Add the requester IP address to the view's object
         """
-        # Forwarded requests may have multiple IP addresses; the first one is the real client IP
-        ip_list = self.request.META.get('HTTP_X_FORWARDED_FOR', self.request.META.get('REMOTE_ADDR'))
-        self.object.ip_address = ip_list.split(',')[0]
+        self.object.ip_address = get_request_ip_address(self.request)
 
     def spam_check(self):
         """

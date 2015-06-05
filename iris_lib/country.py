@@ -64,16 +64,3 @@ class CountryField(models.CharField):
     def get_internal_type(self):
         return "CharField"
 
-# http://south.readthedocs.org/en/latest/tutorial/part4.html#tutorial-part-4
-from south.modelsinspector import add_introspection_rules
-add_introspection_rules(
-    [
-        (
-            [CountryField], # Class(es) these apply to
-            [],             # Positional arguments (not used)
-            {},
-        ),
-    ], [
-        "^lib\.fields\.CountryField",
-    ]
-)

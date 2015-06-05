@@ -5,7 +5,10 @@ from django.utils.encoding import force_text, force_bytes
 from django.utils.safestring import mark_safe
 from textwrap import dedent
 import re
+from django.utils.log import getLogger
+import json
 
+LOGGER = getLogger(__name__)
 register = template.Library()
 
 def obfuscate_string(value):
@@ -80,6 +83,28 @@ def urlbuilder_exists(template_name):
     except template.TemplateDoesNotExist:
         return False
 
+
+@register.simple_tag(takes_context=True)
+def log_form_errors(context):
+    """
+    A template tag that logs form errors when the form is rerendered to the user.  This can be useful
+    because normally the form-level errors are not recorded anywhere.
+    """
+    form = context.get('form')
+    if form:
+        form_errors = getattr(form, 'errors', None)
+        if form_errors and isinstance(form_errors, dict):
+            errors = {}
+            for fname, error in form_errors.iteritems():
+                val = '?'
+                try:
+                    val = form[fname].value()
+                except: pass
+                errors[fname] = [error, val]
+            LOGGER.debug("Form errors: %s" % json.dumps(errors))
+    return ''
+
+
 ##
 # 2014-09-09 rnewman: email obfuscator
 
@@ -113,3 +138,11 @@ def status_class(status):
     Translates a Django status level (debug/info/success/warning/error) to a BS3 class
     """
     return BS3_STATUS_CLASSES.get(status, status)
+
+
+@register.filter()
+def link_dois(value):
+    """
+    Finds any DOI references in a block of text and renders them linked to dx.doi.org.
+    """
+    return mark_safe(re.sub(r'(?<!dx.doi.org/)(doi:\d+\.\d+/\S+\w)', r'<a href="http://dx.doi.org/\1">\1</a>', value))
