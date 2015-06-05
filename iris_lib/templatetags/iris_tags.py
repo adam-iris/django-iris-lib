@@ -1,9 +1,6 @@
 from django import template
-from django.conf import settings
 from django.template.defaultfilters import stringfilter
-from django.utils.encoding import force_text, force_bytes
 from django.utils.safestring import mark_safe
-from textwrap import dedent
 import re
 from django.utils.log import getLogger
 import json
@@ -32,56 +29,6 @@ def keyvalue(d, key):
         return d[key]
     except KeyError:
         return None
-
-##
-# 2013-06-25 adam: copied from django.contrib.markup, since that is deprecated as of Django 1.5
-
-@register.filter(is_safe=True)
-def textile(value, args=''):
-    try:
-        import textile
-    except ImportError:
-        if settings.DEBUG:
-            raise template.TemplateSyntaxError("Error in 'textile' filter: The Python textile library isn't installed.")
-        return force_text(value)
-    else:
-        auto_link = ("auto_link" in args)
-        value_bytes = force_bytes(value)
-        if auto_link:
-            # Textile does web links but not email links, so do them here
-            value_bytes = re.sub(r'\b(?:mailto:)?([\w.-]+\@[a-z0-9.\-]+[.][a-z]{2,4})\b', r'"\1":mailto:\1', value_bytes)
-        return mark_safe(force_text(textile.textile(value_bytes, encoding='utf-8', output='utf-8', auto_link=auto_link)))
-
-class TextileNode(template.Node):
-    def __init__(self, nodelist):
-        self.nodelist = nodelist
-    def render(self, context):
-        output = self.nodelist.render(context)
-        try:
-            import textile
-        except ImportError:
-            if settings.DEBUG:
-                raise template.TemplateSyntaxError("Error in {% textile %} filter: The Python textile library isn't installed.")
-            return force_text(output)
-        return textile.textile(force_text(dedent(output.strip())))
-
-@register.tag(name='textile')
-def do_textile(parser, token):
-    nodelist = parser.parse(('endtextile',))
-    parser.delete_first_token()
-    return TextileNode(nodelist)
-
-##
-# 2013-09-05 rnewman: filter for checking existence of URL builder template
-
-@register.filter(name="urlbuilder_exists")
-def urlbuilder_exists(template_name):
-    path_to_builder = "%s/%s.html" % ("webservicedoc/builders", template_name)
-    try:
-        template.loader.get_template(path_to_builder)
-        return path_to_builder
-    except template.TemplateDoesNotExist:
-        return False
 
 
 @register.simple_tag(takes_context=True)
