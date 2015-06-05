@@ -1,36 +1,20 @@
-from django import forms
-from django.views.generic.edit import FormView
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit
-from crispy_forms.bootstrap import FormActions
-from iris_lib.coordinates import Coordinates
-from iris_lib.crispy_forms_mixins import FormHelperMixin
+from django.utils.translation import ugettext_lazy as _
+from django.views.generic.base import TemplateView
+from iris_lib.ws_client.events import EventRequest
+import datetime
 
-
-class WebserviceForm(FormHelperMixin, forms.Form):
-
-    starttime = forms.RegexField(r'(\d+-){2}\d+T(\d+:){0,2}(\d+)?')
-    endtime = forms.RegexField(r'(\d+-){2}\d+T(\d+:){0,2}(\d+)?')
-    maxlat = forms.DecimalField()
-    minlat = forms.DecimalField()
-    maxlon = forms.DecimalField()
-    minlon = forms.DecimalField()
-
-    def create_form_layout(self):
-        return Layout(
-            'starttime',
-            'endtime',
-            Coordinates('maxlat', 'minlat', 'maxlon', 'minlon',
-                css_id='location', label_html=_('Coordinates')),
-            FormActions(
-                Submit('save', 'Save changes'),
-            )
-        )
-
-
-class WebserviceView(FormView):
+class WebserviceView(TemplateView):
     template_name = 'examples/webservices.html'
-    form_class = WebserviceForm
 
-    def post(self, request):
-        return super(WebserviceView, self).post(request)
+    def get_context_data(self, **kwargs):
+        context = super(WebserviceView, self).get_context_data(**kwargs)
+        context['events'] = self.get_ws_data()
+        return context
+    
+    def get_ws_data(self):
+        req = EventRequest(
+            startdate=datetime.datetime(2015, 1, 1),
+            enddate=datetime.datetime(2015, 1, 5),
+        )
+        return req.get()
+    

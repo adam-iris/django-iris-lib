@@ -1,5 +1,5 @@
 from django.utils.log import getLogger
-from iris_lib.ws import ws_settings, ws_request
+from iris_lib.ws_client import ws_settings, ws_request
 import re
 from datetime import datetime
 from decimal import Decimal

@@ -4,7 +4,7 @@ import copy
 from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
 from django.contrib.admin.widgets import RelatedFieldWidgetWrapper
-from iris_lib.widgets import Select2
+from iris_lib.select2widget import Select2
 from django.utils.encoding import force_text
 from django.contrib.contenttypes.models import ContentType
 
