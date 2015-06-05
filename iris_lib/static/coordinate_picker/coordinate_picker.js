@@ -27,6 +27,14 @@
       draggable: false,
       editable: false,
       clickable: false
+    },
+    infoBubbleOptions: {
+      padding: 2,
+      borderWidth: 1,
+      borderColor: '#ccc',
+      disableAutoPan: true,
+      hideCloseButton: true,
+      backgroundClassName: 'info-bubble'
     }
   };
 
@@ -71,9 +79,14 @@
     var $cancelBtn = $('<button type="button" class="btn btn-default btn-sm">Cancel</button>');
     var $okCancelControls = $('<div class="coordinate-picker-bottom-controls">').append($okBtn, ' ', $cancelBtn);
 
+    
+
     var $qtipTarget = this.$root;
     var rectShape = null;
     var circleShape = null;
+    var infoBubbles = [
+      new InfoBubble(this.options.infoBubbleOptions),
+      new InfoBubble(this.options.infoBubbleOptions)]
     var drawStartPoint = null;
     var drawStartLatLng = null;
     var map = null;
@@ -114,8 +127,8 @@
     /* Position is from mouse event evt.pageX, evt.pageY */
     function getPoint(pageX, pageY) {
       var offset = $map.offset();
-      var posX = pageX - offset.left;
-      var posY = pageY - offset.top;
+      var posX = Math.max(0, pageX - offset.left);
+      var posY = Math.max(0, pageY - offset.top);
       posX = Math.min(posX, $map.width());
       posY = Math.min(posY, $map.height());
       return new google.maps.Point(posX, posY);
@@ -125,7 +138,7 @@
       var prj = ov.getProjection();
       return prj.fromContainerPixelToLatLng(point);
     }
-
+    
     function updateRect(point) {
       var left = Math.min(point.x, drawStartPoint.x);
       var right = Math.max(point.x, drawStartPoint.x);
@@ -136,6 +149,9 @@
         getLatLng(new google.maps.Point(left, bottom)),
         getLatLng(new google.maps.Point(right, top))
       ));
+      var latLng = getLatLng(point)
+      infoBubbles[1].setContent("" + latLng);
+      infoBubbles[1].setPosition("" + latLng);
     }
     
     function updateCircle(point) {
@@ -143,12 +159,16 @@
       var distance = google.maps.geometry.spherical.computeDistanceBetween(
         drawStartLatLng, latLng);
       circleShape.setRadius(distance);
+      infoBubbles[1].setContent(latLng);
+      infoBubbles[1].setPosition(latLng);
     }
 
     function startRect(n, s, e, w) {
+      var ne = new google.maps.LatLng(n, e);
+      var sw = new google.maps.LatLng(s, w);
       var rectOptions = {
         map: map,
-        bounds: new google.maps.LatLngBounds({'lat':n, 'lng':e}, {'lat':s, 'lng':w})
+        bounds: new google.maps.LatLngBounds(ne, sw)
       };
       if (rectShape) {
         rectShape.setOptions(rectOptions);
@@ -157,12 +177,21 @@
           $.extend({}, _this.options.rectangleOptions, rectOptions)
         );
       }
+      infoBubbles[0].setContent("" + n + ", " + e);
+      infoBubbles[0].setPosition(ne);
+      infoBubbles[0].setMap(map);
+      infoBubbles[0].open();
+      infoBubbles[1].setContent("" + s + ", " + w);
+      infoBubbles[1].setPosition(sw);
+      infoBubbles[1].setMap(map);
+      infoBubbles[1].open();
     }
 
     function startCircle(lat, lon, r) {
+      var center = new google.maps.LatLng(lat, lon);
       var circleOptions = $.extend({}, _this.options.circleOptions, {
         map: map,
-        center: {'lat':lat, 'lng':lon},
+        center: center,
         radius: r
       });
       if (circleShape) {
@@ -170,6 +199,14 @@
       } else {
         circleShape = new google.maps.Circle(circleOptions);
       }
+      infoBubbles[0].setContent(center);
+      infoBubbles[0].setPosition(center);
+      infoBubbles[0].setMap(map);
+      infoBubbles[0].open();
+      infoBubbles[1].setContent(center);
+      infoBubbles[1].setPosition(center);
+      infoBubbles[1].setMap(map);
+      infoBubbles[1].open();
     }
 
     function startDrawing(e) {
@@ -185,7 +222,7 @@
         startRect(drawStartLatLng.lat(), drawStartLatLng.lat(), drawStartLatLng.lng(), drawStartLatLng.lng());
       }
       else if (drawingMode === 'circle') {
-        startCircle(drawStartLatLng.lat(), drawStartLatLng.lat(), 0);
+        startCircle(drawStartLatLng.lat(), drawStartLatLng.lng(), 0);
       }
     }
     // Debounce the refresh method
@@ -212,6 +249,8 @@
     function stopDrawing(e) {
       keepDrawing(e);
       drawStartPoint = drawStartLatLng = lastPoint = null;
+      infoBubbles[0].setMap(null);
+      infoBubbles[1].setMap(null);
     }
 
     function initMap() {

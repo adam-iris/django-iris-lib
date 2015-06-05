@@ -17,6 +17,7 @@ class CoordinatesFormMixin(object):
         js = (
             '//maps.googleapis.com/maps/api/js',
             '//cdn.jsdelivr.net/qtip2/2.2.1/jquery.qtip.js',
+            'libs/gmaps/infobubble.js',
             'coordinate_picker/coordinate_picker.js',
         )
 
