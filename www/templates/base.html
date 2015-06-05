@@ -1,0 +1,35 @@
+{% extends "skeleton.html" %}
+
+{% block meta %}
+  <!-- Forces IE to render in 'latest' compatible mode -->
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
+  <meta name="viewport" content="width=device-width" />
+{% endblock meta %}
+
+{% block css %}
+  <link rel="stylesheet" media="screen" type="text/css" href="//ds.iris.edu/static/css/iris.css" />
+{% endblock css %}
+
+{% block js %}
+  <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
+  <script type="text/javascript" src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+{% endblock js %}
+
+{% block wrapper %}
+    {% block content %}
+        <h1>
+        {% block content_title %}
+          {% block title %}{% endblock title %}
+        {% endblock content_title %}
+        </h1>
+
+        <div id="page-content">
+          {% block content_body %}
+          {% endblock content_body %}
+        </div>
+
+      {% endblock content %}
+    </div>
+
+  </div>
+{% endblock wrapper %}

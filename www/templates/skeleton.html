@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    {% block head %}
+      <title>
+        {% block head_title %}
+          {% block title %} {% endblock title %}
+        {% endblock head_title %}
+      </title>
+      {% block meta %}
+      {% endblock meta %}
+      {% block css %}
+      {% endblock css %}
+      {% block js %}
+      {% endblock js %}
+      {% block extra_head %}
+      {% endblock extra_head %}
+    {% endblock head %}
+  </head>
+  <body>
+  {% block site-container %}
+    <div id="site-container">
+      {% block header %}
+      {% endblock header %}
+
+      {% block wrapper %}
+      {% endblock wrapper %}
+
+      {% block footer %}
+      {% endblock footer %}
+    </div><!-- #site-container -->
+  {% endblock site-container %}
+  </body>
+</html>
