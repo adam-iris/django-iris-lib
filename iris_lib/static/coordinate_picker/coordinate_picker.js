@@ -70,6 +70,7 @@
     var rectShape = null;
     var circleShape = null;
     var drawStartPoint = null;
+    var drawStartLatLng = null;
     var map = null;
     // GMaps overlay for coordinate translation
     var ov = new google.maps.OverlayView();
@@ -134,44 +135,68 @@
     
     function updateCircle(point) {
       var latLng = getLatLng(point);
-      var radius = 15*100000; // google.maps.geometry
-      circleShape.setRadius(radius);
+      var distance = google.maps.geometry.spherical.computeDistanceBetween(
+        drawStartLatLng, latLng);
+      circleShape.setRadius(distance);
     }
 
     function startDrawing(e) {
       if (rectShape) {
         rectShape.setMap(null);
       }
+      if (circleShape) {
+        circleShape.setMap(null);
+      }
       drawStartPoint = getPoint(e.pageX, e.pageY);
-      var latLng = getLatLng(drawStartPoint);
+      drawStartLatLng = getLatLng(drawStartPoint);
       if (drawingMode === 'rect') {
         var rectOptions = $.extend({}, _this.options.rectangleOptions, {
           map: map,
-          bounds: new google.maps.LatLngBounds(latLng, latLng)
+          bounds: new google.maps.LatLngBounds(drawStartLatLng, drawStartLatLng)
         });
-        rectShape = new google.maps.Rectangle(rectOptions);
+        if (rectShape) {
+          rectShape.setOptions(rectOptions);
+        } else {
+          rectShape = new google.maps.Rectangle(rectOptions);
+        }
       }
       else if (drawingMode === 'circle') {
         var circleOptions = $.extend({}, _this.options.circleOptions, {
           map: map,
-          center: latLng,
+          center: drawStartLatLng,
           radius: 0
         });
-        circleShape = new google.maps.Circle(circleOptions);
+        if (circleShape) {
+          circleShape.setOptions(circleOptions);
+        } else {
+          circleShape = new google.maps.Circle(circleOptions);
+        }
       }
     }
+    // Debounce the refresh method
+    // 200ms timeout
+    var DEBOUNCE = 200;
+    var debounceTimeout = null;
+    // last position received
+    var lastPoint = null
     function keepDrawing(e) {
-      var point = getPoint(e.pageX, e.pageY);
+      lastPoint = getPoint(e.pageX, e.pageY);
+      if (!debounceTimeout) {
+        debounceTimeout = window.setTimeout(keepDrawingDebounced, DEBOUNCE);
+      }
+    }
+    function keepDrawingDebounced() {
       if (drawingMode === 'rect') {
-        updateRect(point);
+        updateRect(lastPoint);
       }
       else if (drawingMode === 'circle') {
-        updateCircle(point);
+        updateCircle(lastPoint);
       }
+      debounceTimeout = null;
     }
     function stopDrawing(e) {
       keepDrawing(e);
-      drawStartPoint = null;
+      drawStartPoint = drawStartLatLng = lastPoint = null;
     }
 
     function initMap() {
