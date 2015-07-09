@@ -1,5 +1,7 @@
 from django.utils.translation import ugettext_lazy as _
 from django.core.validators import RegexValidator
+from django.forms.models import ModelChoiceField, ModelMultipleChoiceField
+from email.utils import formataddr
 
 
 class DOIValidator(RegexValidator):
@@ -52,4 +54,18 @@ def validate_picked(value):
         raise ValidationError(_('This field is required'))
 
 
+#####
+# Prettified user choices, use these for form fields giving user choices
+#####
 
+class PrettifiedUserChoiceMixin(object):
+    def label_from_instance(self, obj):
+        return formataddr((obj.get_full_name(), obj.email))
+
+
+class UserModelChoiceField(PrettifiedUserChoiceMixin, ModelChoiceField):
+    pass
+
+
+class UserModelMultipleChoiceField(PrettifiedUserChoiceMixin, ModelMultipleChoiceField):
+    pass

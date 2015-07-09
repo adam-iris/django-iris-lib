@@ -12,3 +12,21 @@
 .select2-result.select2-highlighted .select2-tag-help {
   color: #ccc;
 }
+
+/* Override some of the BS3 styles */
+.select2-container.form-control {
+  padding: 0;
+  border: none;
+}
+.select2-container.form-control .select2-choices {
+  border-color: #ccc;
+  border-radius: 4px;
+}
+
+.select2-container.form-control.select2-dropdown-open .select2-choices {
+  border-radius: 4px 4px 0 0;
+}
+
+.select2-container.form-control.select2-dropdown-open.select2-drop-above .select2-choices {
+  border-radius: 0 0 4px 4px;
+}

@@ -4,7 +4,6 @@ from django.utils.encoding import force_text, force_bytes
 from textwrap import dedent
 from django.template.defaultfilters import stringfilter, slugify
 from django.utils.safestring import mark_safe
-import textile
 import re
 from django.utils.log import getLogger
 
@@ -120,6 +119,12 @@ def textile_table_of_contents(html, show_toc=None):
     Table Of Contents
     from textile-based markup
     """
+    try:
+        import textile
+    except ImportError:
+        if settings.DEBUG:
+            raise template.TemplateSyntaxError("Error in 'textile' filter: The Python textile library isn't installed.")
+        return force_text(html)
     HEADLINES_REGEX = 'h(?P<type>[\d])\. (?P<headerstr>[^\r\n\r]+)'
     headlines = re.findall(HEADLINES_REGEX, html)
     if len(headlines) > 0:
