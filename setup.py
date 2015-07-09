@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 
 setup(name='django-iris-lib',
-      version='0.0.2',
+      version='0.0.3',
       description='IRIS DMC common library',
       long_description=open('README.md').read(),
       classifiers=[],
@@ -22,7 +22,7 @@ setup(name='django-iris-lib',
           'mock'
       ],
       install_requires=[
-          'Django>=1.6.8',
+          'Django>=1.8',
           'textile>=2.2.1',
           'iso3166>=0.6',
           'requests>=2.2.1',
