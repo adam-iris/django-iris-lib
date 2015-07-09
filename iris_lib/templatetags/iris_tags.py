@@ -4,6 +4,9 @@ from django.utils.safestring import mark_safe
 import re
 from django.utils.log import getLogger
 import json
+from django.utils.encoding import force_text
+from django.conf import settings
+from django.template.loader import render_to_string
 
 LOGGER = getLogger(__name__)
 register = template.Library()
@@ -93,3 +96,27 @@ def link_dois(value):
     Finds any DOI references in a block of text and renders them linked to dx.doi.org.
     """
     return mark_safe(re.sub(r'(?<!dx.doi.org/)(doi:\d+\.\d+/\S+\w)', r'<a href="http://dx.doi.org/\1">\1</a>', value))
+
+
+class PopupHelpNode(template.Node):
+    def __init__(self, nodelist, options):
+        self.nodelist = nodelist
+        self.options = options
+    def render(self, context):
+        output = self.nodelist.render(context)
+        if 'textile' in self.options:
+            try:
+                import textile
+                output = mark_safe(textile.textile(force_text(output.strip())))
+            except ImportError:
+                if settings.DEBUG:
+                    raise template.TemplateSyntaxError("Error in {% textile %} filter: The Python textile library isn't installed.")
+        return render_to_string('lib/popup_help.html', {'content': output})
+
+
+@register.tag(name='popuphelp')
+def do_popup_help(parser, token):
+    nodelist = parser.parse(('endpopuphelp',))
+    parser.delete_first_token()
+    options = token.split_contents()
+    return PopupHelpNode(nodelist, options)
