@@ -261,17 +261,20 @@
     };
     /* Update the NSEW rect with the given point as the mouse/bounds position */
     Picker.prototype.updateRect = function(point) {
-        // The rect bounds are based on `point` and `drawStartPoint` but we have
-        // to define the bounds using NW and SE points
-        var left = Math.min(point.x, this.drawStartPoint.x);
-        var right = Math.max(point.x, this.drawStartPoint.x);
-        var top = Math.min(point.y, this.drawStartPoint.y);
-        var bottom = Math.max(point.y, this.drawStartPoint.y);
-        // console.log("("+left+","+bottom+")-("+right+","+top+")");
-        this.rectShape.setBounds(new google.maps.LatLngBounds(
-            this.getLatLng(new google.maps.Point(left, bottom)),
-            this.getLatLng(new google.maps.Point(right, top))
-        ));
+        var self = this;
+        if (point) {
+            // The rect bounds are based on `point` and `drawStartPoint` but we have
+            // to define the bounds using NW and SE points
+            var left = Math.min(point.x, self.drawStartPoint.x);
+            var right = Math.max(point.x, self.drawStartPoint.x);
+            var top = Math.min(point.y, self.drawStartPoint.y);
+            var bottom = Math.max(point.y, self.drawStartPoint.y);
+            // console.log("("+left+","+bottom+")-("+right+","+top+")");
+            self.rectShape.setBounds(new google.maps.LatLngBounds(
+                self.getLatLng(new google.maps.Point(left, bottom)),
+                self.getLatLng(new google.maps.Point(right, top))
+            ));
+        }
     };
 
     Picker.prototype.initCircle = function() {
@@ -302,11 +305,13 @@
     };
     /* Update the CR circle with the given point as the mouse/bounds position */
     Picker.prototype.updateCircle = function(point) {
-        // Radius is the distance from this point to the center at drawStartLatLng
-        var latLng = this.getLatLng(point);
-        var distance = google.maps.geometry.spherical.computeDistanceBetween(
-            this.drawStartLatLng, latLng);
-        this.circleShape.setRadius(distance);
+        if (point) {
+            // Radius is the distance from this point to the center at drawStartLatLng
+            var latLng = this.getLatLng(point);
+            var distance = google.maps.geometry.spherical.computeDistanceBetween(
+                this.drawStartLatLng, latLng);
+            this.circleShape.setRadius(distance);
+        }
     };
 
     /* Establish the starting point for drawing */
@@ -329,24 +334,25 @@
         }
     };
 
-    /* Called continuously while drawing */
-    Picker.prototype.keepDrawing = function(e) {
-        // Shape drawing is expensive, so run debounced
-        if (!this.debounceTimeout) {
-            var _this = this;
-            this.debounceTimeout = window.setTimeout(function() {
-                _this.keepDrawingDebounced();
-                _this.debounceTimeout = null;
-            }, this.options.redrawTimeout);
-        }
-    };
     /* Debounced update function; update the relevant shape based on drawing mode */
     Picker.prototype.keepDrawingDebounced = function() {
-        if (this.drawingMode === 'rect') {
-            this.updateRect(this.lastPoint);
+        var self = this;
+        if (self.drawingMode === 'rect') {
+            self.updateRect(self.lastPoint);
         }
-        else if (this.drawingMode === 'circle') {
-            this.updateCircle(this.lastPoint);
+        else if (self.drawingMode === 'circle') {
+            self.updateCircle(self.lastPoint);
+        }
+        self.debounceTimeout = null;
+    };
+    Picker.prototype.keepDrawing = function(e) {
+        var self = this;
+        self.lastPoint = self.getPoint(e.pageX, e.pageY);
+        self.$cursorPos.html(self.printLatLng(self.getLatLng(self.lastPoint)));
+        if (!self.debounceTimeout) {
+            self.debounceTimeout = window.setTimeout(function() {
+                self.keepDrawingDebounced();
+            }, self.options.updateDebounce);
         }
     };
     /* Final call to end drawing */
