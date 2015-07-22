@@ -120,3 +120,16 @@ def do_popup_help(parser, token):
     parser.delete_first_token()
     options = token.split_contents()
     return PopupHelpNode(nodelist, options)
+
+
+@register.filter()
+@stringfilter
+def first_paragraph(value):
+    """ Take just the first paragraph of the HTML passed in.
+    """
+    paragraphs = value.split("</p>", 1)
+    if len(paragraphs) > 1:
+        return mark_safe(value.split("</p>")[0] + "</p>")
+    else:
+        return mark_safe(value)
+
