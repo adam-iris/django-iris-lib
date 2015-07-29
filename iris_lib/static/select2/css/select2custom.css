@@ -17,6 +17,7 @@
 .select2-container.form-control {
   padding: 0;
   border: none;
+  height: auto;
 }
 .select2-container.form-control .select2-choices {
   border-color: #ccc;
