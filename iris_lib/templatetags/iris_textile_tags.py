@@ -25,11 +25,10 @@ def textile(value, args=''):
         return force_text(value)
     else:
         auto_link = ("auto_link" in args)
-        value_bytes = force_bytes(value)
         if auto_link:
             # Textile does web links but not email links, so do them here
-            value_bytes = re.sub(r'\b(?:mailto:)?([\w.-]+\@[a-z0-9.\-]+[.][a-z]{2,4})\b', r'"\1":mailto:\1', value_bytes)
-        return mark_safe(force_text(textile.textile(value_bytes, encoding='utf-8', output='utf-8', auto_link=auto_link)))
+            value = re.sub(r'\b(?:mailto:)?([\w.-]+\@[a-z0-9.\-]+[.][a-z]{2,4})\b', r'"\1":mailto:\1', value)
+        return mark_safe(textile.textile(force_text(value), auto_link=auto_link))
 
 
 class TextileNode(template.Node):
