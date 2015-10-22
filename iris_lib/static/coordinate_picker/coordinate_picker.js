@@ -458,10 +458,10 @@
                 if (inputS == inputN && inputW == inputE) {
                   inputS = inputN = inputW = inputE = "";
                 }
-                self.$inputS.val(inputS);
-                self.$inputW.val(inputW);
-                self.$inputN.val(inputN);
-                self.$inputE.val(inputE);
+                self.$inputS.val(inputS).change();
+                self.$inputW.val(inputW).change();
+                self.$inputN.val(inputN).change();
+                self.$inputE.val(inputE).change();
             }
             if (self.circleShape) {
                 var centerLat = self.circleShape.getCenter().lat().toFixed(3);
@@ -475,9 +475,9 @@
                       new google.maps.LatLng(0, 0), radius, 90);
                   radius = offset.lng().toFixed(3);
                 }
-                self.$inputCenterLat.val(centerLat);
-                self.$inputCenterLon.val(centerLon);
-                self.$inputMaxRadius.val(radius);
+                self.$inputCenterLat.val(centerLat).change();
+                self.$inputCenterLon.val(centerLon).change();
+                self.$inputMaxRadius.val(radius).change();
             }
         });
     };
