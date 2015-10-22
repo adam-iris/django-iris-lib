@@ -2,6 +2,7 @@ Django==1.6.10
 textile==2.2.1
 iso3166==0.6
 requests==2.2.1
+django-crispy-forms==1.5.2
 
 ### Customized libraries from IRIS Github
 #
@@ -25,4 +26,3 @@ requests==2.2.1
 # last public release, adds an "-iris" suffix, and is marked as a prerelease.
 # eg. if the last released version is 1.3.0, our tag is 1.4.0-iris
 #
-https://github.com/iris-edu/django-crispy-forms/archive/1.5.0-iris.tar.gz
