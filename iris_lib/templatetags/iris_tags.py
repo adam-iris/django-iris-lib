@@ -98,6 +98,21 @@ def link_dois(value):
     return mark_safe(re.sub(r'(?<!dx.doi.org/)(doi:\d+\.\d+/\S+\w)', r'<a href="http://dx.doi.org/\1">\1</a>', value))
 
 
+#####
+# Popup help tag
+#
+# Renders a help icon that pops up the given content on mouseover.
+#
+# @example:
+# {% popuphelp %}
+# <b>Here</b> is some help text! It can include HTML markup.
+# {% endpopuphelp %}
+#
+# @example:
+# {% popuphelp textile %}
+# *Here* is some help text! It can include Textile markup.
+# {% endpopuphelp %}
+
 class PopupHelpNode(template.Node):
     def __init__(self, nodelist, options):
         self.nodelist = nodelist
@@ -111,11 +126,11 @@ class PopupHelpNode(template.Node):
             except ImportError:
                 if settings.DEBUG:
                     raise template.TemplateSyntaxError("Error in {% textile %} filter: The Python textile library isn't installed.")
-        return render_to_string('lib/popup_help.html', {'content': output})
+        return render_to_string('iris_lib/popup_help.html', {'content': output})
 
 
 @register.tag(name='popuphelp')
-def do_popup_help(parser, token):
+def do_popuphelp(parser, token):
     nodelist = parser.parse(('endpopuphelp',))
     parser.delete_first_token()
     options = token.split_contents()
@@ -132,4 +147,42 @@ def first_paragraph(value):
         return mark_safe(value.split("</p>")[0] + "</p>")
     else:
         return mark_safe(value)
+
+
+#####
+# Plaintext trimmer
+#
+# Removes excess newlines from a block of text. This is useful for templates that produce
+# plaintext (eg. plaintext email), generally if there is any template logic it will result in lots
+# of extra newlines, because the template will render the newlines between each line of control logic.
+#
+# This will:
+# - Convert any run of 2+ newlines (with any whitespace between them) into "\n\n"
+# - Strip any whitespace from the beginning and end of the resulting string
+#
+# @example:
+# {% trimtext %}
+#     {% if some_condition %}
+#         {% for item in items %}
+# {{ item }}
+#        {% endfor %}
+#     {% endif %}
+# {% endtrimtext %}
+#
+# Note in the example that there will still be 2 newlines between each {{ item }}
+
+class TrimTextNode(template.Node):
+    def __init__(self, nodelist, options):
+        self.nodelist = nodelist
+    def render(self, context):
+        output = self.nodelist.render(context)
+
+        return re.sub(r'([^\S\n]*\n){2,}', r'\n\n', output).strip()
+
+@register.tag(name='trimtext')
+def do_trimtext(parser, token):
+    nodelist = parser.parse(('endtrimtext',))
+    parser.delete_first_token()
+    options = token.split_contents()
+    return TrimTextNode(nodelist, options)
 
