@@ -106,6 +106,21 @@
                 opts.data = { results: [{text: groupName, children: data}]};
             }
         }
+        // If no sorting specified, sort 0-index matches highest
+        if (!opts.sortResults) {
+            opts.sortResults = function(results, container, query) {
+                if (query.term) {
+                    return results.sort(function(a, b) {
+                        var indexa = a.text.toUpperCase().indexOf(query.term.toUpperCase());
+                        var indexb = b.text.toUpperCase().indexOf(query.term.toUpperCase());
+                        if (indexa == 0 && indexb != 0) { return -1; }
+                        else if (indexa != 0 && indexb == 0) { return 1; }
+                        else { return 0; }
+                    });
+                }
+                return results;
+            };
+        }
         return opts;
     }
 
