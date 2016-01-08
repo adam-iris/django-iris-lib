@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 
 setup(name='django-iris-lib',
-      version='0.0.5',
+      version='0.0.6',
       description='IRIS DMC common library',
       long_description=open('README.md').read(),
       classifiers=[],
