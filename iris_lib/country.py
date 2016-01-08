@@ -18,6 +18,13 @@ COUNTRY_COMMON_NAMES = {
     "TZ": _(u"Tanzania"),
     "VE": _(u"Venezuela"),
     "VN": _(u"Vietnam"),
+
+    # Other entities, these are reserved in the ISO3166 spec but not officially listed
+    "UN": _(u"United Nations"),
+    "EU": _(u"European Union"),
+
+    # Multiple countries
+    "M7": _(u"Multiple Countries"),
 }
 
 
@@ -47,7 +54,7 @@ class CountryField(models.CharField):
 
     __metaclass__ = models.SubfieldBase
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, include_orgs=False, include_multiple=False, *args, **kwargs):
 
         COUNTRY_HELP_TEXT = " ".join([
             'Country names and codes based on the',
@@ -55,8 +62,14 @@ class CountryField(models.CharField):
             'ISO 3166 standard</a>.'
         ])
 
+        choices = COUNTRIES
+        if include_orgs:
+            choices += [(code, get_country_name(code)) for code in ["UN", "EU"]]
+        if include_multiple:
+            choices += [(code, get_country_name(code)) for code in ["M7"]]
+
         kwargs.setdefault('max_length', 2)
-        kwargs.setdefault('choices', COUNTRIES)
+        kwargs.setdefault('choices', choices)
         kwargs.setdefault('help_text', COUNTRY_HELP_TEXT)
 
         super(CountryField, self).__init__(*args, **kwargs)
