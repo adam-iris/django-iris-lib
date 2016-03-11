@@ -39,9 +39,10 @@ class Select2CustomMixin(object):
     inline_script = """
         <script>
             $(function() {
-                $("#%(id)s").on('select2changed', function(e){
+                var jq = $.grep([$, jQuery, django.jQuery], function(jq) { return !!jq.fn.select2; })[0];
+                jq("#%(id)s").on('select2changed', function(e){
                     var opts = Select2Custom.prepareOpts(%(options)s);
-                    $("#%(id)s").select2(opts);
+                    jq("#%(id)s").select2(opts);
                 }).trigger('select2changed');
             });
         </script>

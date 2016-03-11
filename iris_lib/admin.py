@@ -4,7 +4,7 @@ import copy
 from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
 from django.contrib.admin.widgets import RelatedFieldWidgetWrapper
-from iris_lib.select2widget import Select2
+from iris_lib.select2widget import Select2, Select2Multiple
 from django.utils.encoding import force_text
 from django.contrib.contenttypes.models import ContentType
 
@@ -110,7 +110,10 @@ class Select2AdminMixin(object):
         else:
             use_select2 = (db_field.rel or db_field.choices)
         if use_select2:
-            kwargs.setdefault('widget', Select2)
+            if db_field.many_to_many:
+                kwargs.setdefault('widget', Select2Multiple)
+            else:
+                kwargs.setdefault('widget', Select2)
         return super(Select2AdminMixin, self).formfield_for_dbfield(db_field, **kwargs)
 
 
