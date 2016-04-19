@@ -2,8 +2,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.db import models
 import iso3166
 
-# Common country names that depart from the ISO standard
-# Note that these shouldn't change the sorting (they are generally just truncated versions of the full name)
+# Override the displayed name for various countries
+# Note that this can affect the display order
 COUNTRY_COMMON_NAMES = {
     "BN": _(u"Brunei"),
     "BO": _(u"Bolivia"),
@@ -18,14 +18,25 @@ COUNTRY_COMMON_NAMES = {
     "TZ": _(u"Tanzania"),
     "VE": _(u"Venezuela"),
     "VN": _(u"Vietnam"),
-
-    # Other entities, these are reserved in the ISO3166 spec but not officially listed
-    "UN": _(u"United Nations"),
-    "EU": _(u"European Union"),
-
-    # Multiple countries
-    "M7": _(u"Multiple Countries"),
 }
+
+# Additions to the country list.  These are in Django choices form.
+# By default they work for lookup but aren't listed in the widget unless requested.
+
+# Code for multiple countries (mainly for orgs). This isn't a real (or valid) code, don't use it outside.
+MULTIPLE_COUNTRIES = (
+    ("M7", _(u"Multiple Countries")),
+)
+
+# Entities with codes reserved in the ISO3166 spec but not officially listed
+ISO3166_ORGS = (
+    ("UN", _(u"United Nations")),
+    ("EU", _(u"European Union")),
+)
+
+# Add these to the name lookup
+COUNTRY_COMMON_NAMES.update(MULTIPLE_COUNTRIES)
+COUNTRY_COMMON_NAMES.update(ISO3166_ORGS)
 
 
 def get_country_name(country_code):
@@ -64,9 +75,9 @@ class CountryField(models.CharField):
 
         choices = COUNTRIES
         if include_orgs:
-            choices += [(code, get_country_name(code)) for code in ["UN", "EU"]]
+            choices += list(ISO3166_ORGS)
         if include_multiple:
-            choices += [(code, get_country_name(code)) for code in ["M7"]]
+            choices += list(MULTIPLE_COUNTRIES)
 
         kwargs.setdefault('max_length', 2)
         kwargs.setdefault('choices', choices)
