@@ -156,12 +156,12 @@ def first_paragraph(value):
 # plaintext (eg. plaintext email), generally if there is any template logic it will result in lots
 # of extra newlines, because the template will render the newlines between each line of control logic.
 #
-# This will:
-# - Convert any run of 2+ newlines (with any whitespace between them) into "\n\n"
-# - Strip any whitespace from the beginning and end of the resulting string
+# This removes any non-blank line containing only whitespace.
 #
 # @example:
-# {% trimtext %}
+# {% load iris_tags %}{% trimtext %}
+# Here is a list of items:
+#
 #     {% if some_condition %}
 #         {% for item in items %}
 # {{ item }}
@@ -169,15 +169,26 @@ def first_paragraph(value):
 #     {% endif %}
 # {% endtrimtext %}
 #
-# Note in the example that there will still be 2 newlines between each {{ item }}
+# turns into:
+# Here is a list of items:
+#
+# item1
+# item2
+# item3
+#
+# Start with {% load iris_tags %}{% trimtext %} on one line, this ensures there's no whitespace before
+# the trimmed contents.
+#
+# All other control lines should be indented.  These will be dropped from the output.
+#
+# To make a blank line (like line 2 of the output) put in an unindented blank line.
 
 class TrimTextNode(template.Node):
     def __init__(self, nodelist, options):
         self.nodelist = nodelist
     def render(self, context):
         output = self.nodelist.render(context)
-
-        return re.sub(r'([^\S\n]*\n){2,}', r'\n\n', output).strip()
+        return re.sub(r'^\s+$', '', output, flags=re.M).strip()
 
 @register.tag(name='trimtext')
 def do_trimtext(parser, token):
