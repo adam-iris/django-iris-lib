@@ -29,28 +29,36 @@
         var markMatch = window.Select2.util.markMatch;
         // If autoTag enabled, ensure that various related options are defined
         if (opts.autoTag) {
+            // Show message when no matches
             if (!opts.formatNoMatches) {
                 opts.formatNoMatches = "No matches";
             }
+            // Show placeholder message
             if (!opts.placeholder) {
                 opts.placeholder = "Select or type in a value";
             }
+            // Allow value to be cleared
             if (opts.allowClear === undefined) {
               opts.allowClear = true;
             }
+            // Create a dynamic search result for a given input
             if (!opts.createSearchChoice) {
                 opts.createSearchChoice = function(term, results) {
+                    // Check if the search term exactly matches anything
+                    // Note that this basically means rerunning the search
                     var exactMatch = findResult(results, function(result) {
                         if (defaults.matcher(result.text, term)) {
                             return result;
                         }
                     });
                     // console.log("createSearchChoice: " + term + ", " + results[0].text);
+                    // If no exact match, offer a tag based on the input
                     if (!exactMatch) {
                         return { 'id': term, 'text': term, 'tag': true };
                     }
                 };
             }
+            // Generate a search term for a given result
             if (!opts.nextSearchTerm) {
                 opts.nextSearchTerm = function (obj, term) {
                     // console.log("nextSearchTerm: " + obj + ", " + term);
@@ -61,6 +69,7 @@
                     }
                 };
             }
+            // Format a matching result
             if (!opts.formatResult) {
                   opts.formatResult = function (result, container, query, escapeMarkup) {
                       if (!result.id) {
@@ -80,9 +89,11 @@
             }
         }
         // Use createSearchChoice to generate initSelection if appropriate
+        // This is typically when the page loads, the field has a value (eg. an object id) that
+        // needs to be turned into a search result.
         if (opts.data && opts.createSearchChoice && !opts.initSelection) {
             opts.initSelection = function(element, callback) {
-                // Look for current value as an id, otherwise create a search choice
+                // Try to match the field value against the id of each item
                 var id = $(element).val();
                 var data = opts.data.results || opts.data;
                 var match = findResult(data, function(result) {
@@ -91,6 +102,7 @@
                     }
                 });
                 // console.log("initSelection: " + id + ", " + match);
+                // If nothing matched, treat the value as though the user had typed it in
                 if (!match) {
                     match = opts.createSearchChoice(id);
                 }
